@@ -1,0 +1,66 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# --- General Dependencies ---
+node_modules/
+.pnp/
+.pnp.js
+package-lock.json  # Optional: include if you want to avoid versioning lockfiles
+
+# --- Build & Coverage ---
+build/
+coverage/
+dist/
+
+# --- System Files ---
+.DS_Store
+Thumbs.db
+
+# --- Environment Variables ---
+.env
+.env.*
+!.env.example  # Allow example env files
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Python Specific ---
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# --- Backend-Specific ---
+backend/venv/
+backend/best_model.keras
+backend/*.h5
+backend/*.pt
+backend/corrections/
+backend/corrections.txt
+backend/corrections.json
+backend/food_labels.json
+backend/restructured_labels.csv
+backend/label_index_mapping.csv
+backend/*.js  # Remove if you have intentional JS files to version
+
+# --- Frontend-Specific ---
+frontend/node_modules/
+frontend/public/build/  # More specific than ignoring all of public/
+frontend/dist/
+
+# --- Datasets ---
+Images/
+*.jpg  # Optional: if you want to exclude stray images
+*.png
+*.jpeg
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.sublime-project
