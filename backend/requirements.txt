@@ -61,6 +61,7 @@ numpy==2.0.2
 opt_einsum==3.4.0
 optree==0.13.1
 packaging==24.2
+pandas==2.2.3
 pillow==11.0.0
 platformdirs==4.3.6
 promise==2.3
