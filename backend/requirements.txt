@@ -72,7 +72,7 @@ pandas==2.2.3
 pillow==11.0.0
 platformdirs==4.3.6
 promise==2.3
-protobuf==3.20.3  # Updated from 5.29.2 to resolve conflict with tensorflow-metadata
+protobuf==3.20.3
 psutil==6.1.1
 pyarrow==19.0.0
 pyasn1==0.6.1
@@ -112,7 +112,6 @@ tensorflow==2.18.0
 tensorflow-datasets==4.9.7
 tensorflow-metadata==1.16.1
 termcolor==2.5.0
-tf_nightly==2.20.0.dev20250223
 threadpoolctl==3.5.0
 tldextract==5.2.0
 toml==0.10.2
