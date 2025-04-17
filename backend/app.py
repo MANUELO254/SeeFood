@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify 
 from flask_cors import CORS
 import tensorflow as tf
 from PIL import Image
@@ -13,12 +13,12 @@ from dotenv import load_dotenv
 import requests
 from pathlib import Path
 
-# === Load environment variables from .env ===
-dotenv_path = r"C:\Users\Manuel\Desktop\SeeFood\backend\.env"
-if os.path.exists(dotenv_path):
+# === Load environment variables (.env for local, Config Vars on Heroku) ===
+dotenv_path = Path(".env")
+if dotenv_path.exists():
     load_dotenv(dotenv_path)
 else:
-    print(f".env file not found at {dotenv_path}")
+    print(f"⚠️ .env file not found. Assuming Heroku environment variables.")
 
 # === Flask App Setup ===
 app = Flask(__name__)
@@ -26,24 +26,26 @@ CORS(app)
 
 # === Constants ===
 MODEL_URL = "https://huggingface.co/Manuelo254/seefood/resolve/main/best_model.keras?download=true"
-MODEL_PATH = Path("best_model.keras")
+MODEL_PATH = Path("models/best_model.keras")
 LABELS_PATH = Path("label_index_mapping.csv")
 
-# === Download model if it doesn't exist ===
+# === Download model from Hugging Face (one-time) ===
 def download_model():
     if not MODEL_PATH.exists():
         print("📦 Downloading model from Hugging Face...")
+        os.makedirs(MODEL_PATH.parent, exist_ok=True)
         response = requests.get(MODEL_URL, stream=True)
         response.raise_for_status()
         with open(MODEL_PATH, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+                f.write(chunk)
         print("✅ Model download complete.")
+    else:
+        print("✅ Model already exists locally.")
 
 download_model()
 
-# === Load Model ===
+# === Load TensorFlow Model ===
 print("🚀 Loading model...")
 model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
 print("✅ Model loaded.")
@@ -51,15 +53,15 @@ print("✅ Model loaded.")
 # === MongoDB Atlas Setup ===
 mongo_uri = os.getenv("MONGO_URI")
 if not mongo_uri:
-    raise ValueError("❌ MONGO_URI not found in environment variables.")
+    raise ValueError("❌ MONGO_URI not set in environment variables.")
 else:
-    print("✅ Mongo URI loaded from .env")
+    print("✅ Mongo URI loaded.")
 
 client = MongoClient(mongo_uri)
 db = client['SeeFoodDB']
 corrections_collection = db['corrections']
 
-# === Load Class Labels from CSV ===
+# === Load Class Labels ===
 def load_class_labels():
     if not LABELS_PATH.exists():
         raise FileNotFoundError(f"❌ Label CSV not found at {LABELS_PATH}")
@@ -75,11 +77,12 @@ def hash_image(image_bytes):
 
 def preprocess_image(image_bytes):
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image = image.resize((224, 224))
+    image = image.resize((224, 224))  # Adjust to your model input
     image_array = np.array(image) / 255.0
     return np.expand_dims(image_array, axis=0)
 
 # === Routes ===
+
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -93,14 +96,15 @@ def upload_image():
         img_bytes = file.read()
         image_hash = hash_image(img_bytes)
 
-        # Check for manual corrections
+        # === Check for correction in DB ===
         correction = corrections_collection.find_one({'image_hash': image_hash})
         if correction:
             return jsonify({
                 'predicted_class': correction['correct_label'],
-                'confidence': '100%'  # Manually corrected
+                'confidence': '100%'
             })
 
+        # === Predict ===
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
@@ -114,6 +118,7 @@ def upload_image():
 
     except Exception as e:
         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
+
 
 @app.route('/update-label', methods=['POST'])
 def update_label():
@@ -137,7 +142,7 @@ def update_label():
             upsert=True
         )
 
-        # Save corrected image locally
+        # Save corrected image locally (optional)
         corrections_dir = Path('corrections') / correct_label
         corrections_dir.mkdir(parents=True, exist_ok=True)
         filename = f"{uuid.uuid4().hex}.png"
@@ -145,7 +150,7 @@ def update_label():
         with open(file_path, 'wb') as f:
             f.write(img_bytes)
 
-        # Log to file
+        # Log to file (optional)
         with open('corrections.txt', 'a') as log_file:
             log_file.write(f"{correct_label},{file_path}\n")
 
