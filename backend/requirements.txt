@@ -50,8 +50,6 @@ kagglehub==0.3.7
 keras==3.7.0
 keras-core==0.1.7
 keras-cv==0.9.0
-keras-cv-nightly==0.10.0.dev2024100303
-keras-nightly==3.8.0.dev2025022403
 kiwisolver==1.4.8
 libclang==18.1.1
 Markdown==3.7
@@ -105,10 +103,9 @@ sigstore-rekor-types==0.0.18
 silence_tensorflow==1.2.3
 simple-parsing==0.1.7
 six==1.17.0
-tb-nightly==2.19.0a20250218
 tensorboard==2.18.0
 tensorboard-data-server==0.7.2
-tensorflow==2.18.0
+tensorflow-cpu==2.18.0  # Replaced tensorflow with tensorflow-cpu to reduce slug size
 tensorflow-datasets==4.9.7
 tensorflow-metadata==1.16.1
 termcolor==2.5.0
