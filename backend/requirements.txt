@@ -22,7 +22,7 @@ flatbuffers==24.3.25
 fonttools==4.55.3
 fsspec==2025.2.0
 future==1.0.0
-gast==0.6.0
+gast==0.4.0  # Updated from 0.6.0 to resolve conflict with tensorflow-cpu
 gevent==24.11.1
 google-pasta==0.2.0
 googleapis-common-protos==1.66.0
