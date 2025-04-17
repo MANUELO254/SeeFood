@@ -10,8 +10,8 @@ import hashlib
 import pandas as pd
 from pymongo import MongoClient
 from dotenv import load_dotenv
-import requests
 from pathlib import Path
+from huggingface_hub import hf_hub_download
 
 # === Load environment variables (.env for local, Config Vars on Heroku) ===
 dotenv_path = Path(".env")
@@ -25,30 +25,39 @@ app = Flask(__name__)
 CORS(app)
 
 # === Constants ===
-MODEL_URL = "https://huggingface.co/Manuelo254/seefood/resolve/main/best_model.keras?download=true"
-MODEL_PATH = Path("models/best_model.keras")
+MODEL_PATH = Path("/app/backend/models/best_model.keras")  # Absolute path for Heroku
 LABELS_PATH = Path("label_index_mapping.csv")
 
-# === Download model from Hugging Face (one-time) ===
+# === Download Model from Hugging Face ===
 def download_model():
+    print(f"Model path: {MODEL_PATH.resolve()}")
     if not MODEL_PATH.exists():
         print("📦 Downloading model from Hugging Face...")
         os.makedirs(MODEL_PATH.parent, exist_ok=True)
-        response = requests.get(MODEL_URL, stream=True)
-        response.raise_for_status()
-        with open(MODEL_PATH, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+        hf_hub_download(
+            repo_id="Manuelo254/seefood",
+            filename="best_model.keras",
+            local_dir="/app/backend/models"
+        )
         print("✅ Model download complete.")
+        print(f"File exists after download: {MODEL_PATH.exists()}")
+        file_size = MODEL_PATH.stat().st_size
+        print(f"Downloaded file size: {file_size} bytes")
+        if file_size < 1000:  # Check for corrupted file
+            raise ValueError("Downloaded model file is too small, likely corrupted.")
     else:
         print("✅ Model already exists locally.")
 
-download_model()
-
-# === Load TensorFlow Model ===
-print("🚀 Loading model...")
-model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
-print("✅ Model loaded.")
+# === Lazy Model Loading ===
+model = None
+def load_model():
+    global model
+    if model is None:
+        print("🚀 Loading model...")
+        download_model()
+        model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+        print("✅ Model loaded.")
+    return model
 
 # === MongoDB Atlas Setup ===
 mongo_uri = os.getenv("MONGO_URI")
@@ -77,12 +86,11 @@ def hash_image(image_bytes):
 
 def preprocess_image(image_bytes):
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image = image.resize((224, 224))  # Adjust to your model input
+    image = image.resize((224, 224))
     image_array = np.array(image) / 255.0
     return np.expand_dims(image_array, axis=0)
 
 # === Routes ===
-
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -96,7 +104,6 @@ def upload_image():
         img_bytes = file.read()
         image_hash = hash_image(img_bytes)
 
-        # === Check for correction in DB ===
         correction = corrections_collection.find_one({'image_hash': image_hash})
         if correction:
             return jsonify({
@@ -104,7 +111,7 @@ def upload_image():
                 'confidence': '100%'
             })
 
-        # === Predict ===
+        model = load_model()  # Load model only when needed
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
@@ -118,7 +125,6 @@ def upload_image():
 
     except Exception as e:
         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
-
 
 @app.route('/update-label', methods=['POST'])
 def update_label():
@@ -135,14 +141,12 @@ def update_label():
         img_bytes = file.read()
         image_hash = hash_image(img_bytes)
 
-        # Save correction in MongoDB
         corrections_collection.update_one(
             {'image_hash': image_hash},
             {'$set': {'correct_label': correct_label}},
             upsert=True
         )
 
-        # Save corrected image locally (optional)
         corrections_dir = Path('corrections') / correct_label
         corrections_dir.mkdir(parents=True, exist_ok=True)
         filename = f"{uuid.uuid4().hex}.png"
@@ -150,7 +154,6 @@ def update_label():
         with open(file_path, 'wb') as f:
             f.write(img_bytes)
 
-        # Log to file (optional)
         with open('corrections.txt', 'a') as log_file:
             log_file.write(f"{correct_label},{file_path}\n")
 
@@ -159,6 +162,5 @@ def update_label():
     except Exception as e:
         return jsonify({'error': f'Error saving correction: {str(e)}'}), 500
 
-# === Start Server ===
 if __name__ == '__main__':
     app.run(debug=True)
