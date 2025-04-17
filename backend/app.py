@@ -26,7 +26,7 @@ CORS(app)
 
 # === Constants ===
 MODEL_PATH = Path("/app/backend/models/best_model.keras")  # Absolute path for Heroku
-LABELS_PATH = Path("label_index_mapping.csv")
+LABELS_PATH = Path("restructured_labels.csv")
 
 # === Download Model from Hugging Face ===
 def download_model():
