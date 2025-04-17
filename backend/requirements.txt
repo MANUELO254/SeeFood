@@ -41,7 +41,7 @@ hyperframe==6.1.0
 id==1.5.0
 idna==3.10
 immutabledict==4.2.1
-importlib_resources==6.5.2
+importlib_resources==5.7.0  # Updated from 6.5.2 to resolve conflict with sigstore
 in-toto-attestation==0.9.3
 itsdangerous==2.2.0
 Jinja2==3.1.6
