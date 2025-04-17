@@ -75,7 +75,14 @@ def load_class_labels():
     if not LABELS_PATH.exists():
         raise FileNotFoundError(f"❌ Label CSV not found at {LABELS_PATH}")
     df = pd.read_csv(str(LABELS_PATH))
-    return dict(zip(df['index'].astype(str), df['label']))
+    # Clean label column: remove [' and '] and strip whitespace
+    df['label'] = df['label'].str.strip("[]").str.strip("'").str.strip()
+    # Create index column (0, 1, 2, ...) for unique labels
+    unique_labels = df['label'].unique()
+    label_to_index = {label: str(i) for i, label in enumerate(unique_labels)}
+    # Map labels to indices
+    df['index'] = df['label'].map(label_to_index)
+    return dict(zip(df['index'], df['label']))
 
 class_names = load_class_labels()
 print("✅ Class labels loaded.")
