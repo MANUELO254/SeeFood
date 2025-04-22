@@ -22,7 +22,8 @@ else:
 
 # === Flask App Setup ===
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://seefood.vercel.app"}})  # Allow Vercel frontend
+CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})
+  # Allow Vercel frontend
 
 # === Constants ===
 MODEL_PATH = Path("/app/backend/models/best_model.keras")  # Absolute path for Heroku
