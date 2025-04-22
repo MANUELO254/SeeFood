@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
-import TableFoodImage from './assets/tableau.jpg'; // Background image
+import TableFoodImage from './assets/tableau.jpg';
 import Logo from './assets/logo.png';
-
 
 function App() {
   const [image, setImage] = useState(null);
@@ -17,6 +16,8 @@ function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+
+  const API_BASE = 'https://seefood-66db0271b856.herokuapp.com';
 
   const startCamera = async () => {
     try {
@@ -95,7 +96,9 @@ function App() {
       const formData = new FormData();
       formData.append('file', image);
 
-      const response = await axios.post('http://localhost:5000/upload', formData);
+      const response = await axios.post(`${API_BASE}/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
       setResult(response.data);
       setShowCorrectionModal(false);
@@ -123,7 +126,9 @@ function App() {
       formData.append('correct_label', correctLabel);
       formData.append('file', image);
 
-      await axios.post('http://localhost:5000/update-label', formData);
+      await axios.post(`${API_BASE}/update-label`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
       alert('Thank you! Your correction has been submitted.');
       setCorrectLabel('');
@@ -152,7 +157,7 @@ function App() {
 
       <div className="container">
         <div className="card">
-        <img src={Logo} alt="SeeFood Logo" className="logo" />
+          <img src={Logo} alt="SeeFood Logo" className="logo" />
           <h1>SeeFood Image Recognition</h1>
           <p>Upload an image or take a photo to recognize the food.</p>
 
