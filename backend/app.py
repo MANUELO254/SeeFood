@@ -22,7 +22,7 @@ else:
 
 # === Flask App Setup ===
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "https://seefood.vercel.app"}})  # Allow Vercel frontend
 
 # === Constants ===
 MODEL_PATH = Path("/app/backend/models/best_model.keras")  # Absolute path for Heroku
@@ -34,17 +34,21 @@ def download_model():
     if not MODEL_PATH.exists():
         print("📦 Downloading model from Hugging Face...")
         os.makedirs(MODEL_PATH.parent, exist_ok=True)
-        hf_hub_download(
-            repo_id="Manuelo254/seefood",
-            filename="best_model.keras",
-            local_dir="/app/backend/models"
-        )
-        print("✅ Model download complete.")
-        print(f"File exists after download: {MODEL_PATH.exists()}")
-        file_size = MODEL_PATH.stat().st_size
-        print(f"Downloaded file size: {file_size} bytes")
-        if file_size < 1000:
-            raise ValueError("Downloaded model file is too small, likely corrupted.")
+        try:
+            hf_hub_download(
+                repo_id="Manuelo254/seefood",
+                filename="best_model.keras",
+                local_dir="/app/backend/models"
+            )
+            print("✅ Model download complete.")
+            print(f"File exists after download: {MODEL_PATH.exists()}")
+            file_size = MODEL_PATH.stat().st_size
+            print(f"Downloaded file size: {file_size} bytes")
+            if file_size < 1000:
+                raise ValueError("Downloaded model file is too small, likely corrupted.")
+        except Exception as e:
+            print(f"❌ Failed to download model: {str(e)}")
+            raise
     else:
         print("✅ Model already exists locally.")
 
@@ -54,10 +58,15 @@ def load_model():
     global model
     if model is None:
         print("🚀 Loading model...")
-        download_model()
-        model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
-        print("✅ Model loaded.")
-    return model
+        try:
+            download_model()
+            model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+            print("✅ Model loaded.")
+            return {"status": "success", "message": "Model loaded successfully"}
+        except Exception as e:
+            print(f"❌ Failed to load model: {str(e)}")
+            return {"status": "error", "message": f"Failed to load model: {str(e)}"}
+    return {"status": "success", "message": "Model already loaded"}
 
 # === MongoDB Atlas Setup ===
 mongo_uri = os.getenv("MONGO_URI")
@@ -67,6 +76,13 @@ else:
     print("✅ Mongo URI loaded.")
 
 client = MongoClient(mongo_uri)
+try:
+    client.admin.command('ping')  # Test MongoDB connection
+    print("✅ MongoDB connection successful.")
+except Exception as e:
+    print(f"❌ MongoDB connection failed: {str(e)}")
+    raise
+
 db = client['SeeFoodDB']
 corrections_collection = db['corrections']
 
@@ -81,8 +97,12 @@ def load_class_labels():
     df['index'] = df['label'].map(label_to_index)
     return dict(zip(df['index'], df['label']))
 
-class_names = load_class_labels()
-print("✅ Class labels loaded.")
+try:
+    class_names = load_class_labels()
+    print("✅ Class labels loaded.")
+except Exception as e:
+    print(f"❌ Failed to load class labels: {str(e)}")
+    raise
 
 # === Utilities ===
 def hash_image(image_bytes):
@@ -95,10 +115,13 @@ def preprocess_image(image_bytes):
     return np.expand_dims(image_array, axis=0)
 
 # === Routes ===
-
 @app.route('/')
 def home():
-    return jsonify({'message': '✅ SeeFood backend is up and running!'})
+    model_status = load_model()
+    return jsonify({
+        'message': '✅ SeeFood backend is up and running!',
+        'model_status': model_status
+    })
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
@@ -121,6 +144,9 @@ def upload_image():
             })
 
         model = load_model()
+        if model.get('status') == 'error':
+            return jsonify({'error': model['message']}), 500
+
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
