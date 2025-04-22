@@ -43,7 +43,7 @@ def download_model():
         print(f"File exists after download: {MODEL_PATH.exists()}")
         file_size = MODEL_PATH.stat().st_size
         print(f"Downloaded file size: {file_size} bytes")
-        if file_size < 1000:  # Check for corrupted file
+        if file_size < 1000:
             raise ValueError("Downloaded model file is too small, likely corrupted.")
     else:
         print("✅ Model already exists locally.")
@@ -75,12 +75,9 @@ def load_class_labels():
     if not LABELS_PATH.exists():
         raise FileNotFoundError(f"❌ Label CSV not found at {LABELS_PATH}")
     df = pd.read_csv(str(LABELS_PATH))
-    # Clean label column: remove [' and '] and strip whitespace
     df['label'] = df['label'].str.strip("[]").str.strip("'").str.strip()
-    # Create index column (0, 1, 2, ...) for unique labels
     unique_labels = df['label'].unique()
     label_to_index = {label: str(i) for i, label in enumerate(unique_labels)}
-    # Map labels to indices
     df['index'] = df['label'].map(label_to_index)
     return dict(zip(df['index'], df['label']))
 
@@ -98,6 +95,11 @@ def preprocess_image(image_bytes):
     return np.expand_dims(image_array, axis=0)
 
 # === Routes ===
+
+@app.route('/')
+def home():
+    return jsonify({'message': '✅ SeeFood backend is up and running!'})
+
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -118,7 +120,7 @@ def upload_image():
                 'confidence': '100%'
             })
 
-        model = load_model()  # Load model only when needed
+        model = load_model()
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
