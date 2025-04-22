@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
-import TableFoodImage from './assets/tableau.jpg';
+import TableFoodImage from './assets/tableau.jpg'; // Background image
 import Logo from './assets/logo.png';
 
 function App() {
@@ -16,8 +16,6 @@ function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
-
-  const API_BASE = 'https://seefood-66db0271b856.herokuapp.com';
 
   const startCamera = async () => {
     try {
@@ -96,15 +94,14 @@ function App() {
       const formData = new FormData();
       formData.append('file', image);
 
-      const response = await axios.post(`${API_BASE}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/upload`, formData);
 
       setResult(response.data);
       setShowCorrectionModal(false);
     } catch (err) {
       console.error('Error uploading image:', err);
-      setError(err.response?.data?.error || 'Failed to process the image.');
+      const errorMessage = err.response?.data?.error || `Failed to process the image: ${err.message}`;
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -126,16 +123,15 @@ function App() {
       formData.append('correct_label', correctLabel);
       formData.append('file', image);
 
-      await axios.post(`${API_BASE}/update-label`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await axios.post(`${process.env.REACT_APP_API_URL}/update-label`, formData);
 
       alert('Thank you! Your correction has been submitted.');
       setCorrectLabel('');
       setShowCorrectionModal(false);
     } catch (err) {
       console.error('Error sending correction:', err);
-      setError('Failed to send the corrected label.');
+      const errorMessage = err.response?.data?.error || `Failed to send the corrected label: ${err.message}`;
+      setError(errorMessage);
     }
   };
 
