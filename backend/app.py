@@ -14,7 +14,7 @@ from pathlib import Path
 from huggingface_hub import hf_hub_download
 from functools import lru_cache
 
-# === Load environment variables (.env for local, Config Vars on Heroku) ===
+# === Load environment variables ===
 dotenv_path = Path(".env")
 if dotenv_path.exists():
     load_dotenv(dotenv_path)
@@ -23,10 +23,10 @@ else:
 
 # === Flask App Setup ===
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})
+CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})  # Allow CORS for Vercel
 
 # === Constants ===
-MODEL_PATH = Path("/app/backend/models/best_model.keras")  # Absolute path for Heroku
+MODEL_PATH = Path("/app/backend/models/best_model.keras")
 LABELS_PATH = Path("restructured_labels.csv")
 
 # === Download Model from Hugging Face ===
@@ -70,7 +70,7 @@ else:
 
 client = MongoClient(mongo_uri)
 try:
-    client.admin.command('ping')  # Test MongoDB connection
+    client.admin.command('ping')
     print("✅ MongoDB connection successful.")
 except Exception as e:
     print(f"❌ MongoDB connection failed: {str(e)}")
@@ -140,12 +140,7 @@ def upload_image():
                 'confidence': '100%'
             })
 
-        # Get the model (lazy-loaded)
-        try:
-            model = get_model()
-        except Exception as e:
-            return jsonify({'error': f'Model failed to load: {str(e)}'}), 500
-
+        model = get_model()
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
