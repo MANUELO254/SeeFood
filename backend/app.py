@@ -23,7 +23,6 @@ else:
 # === Flask App Setup ===
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})
-  # Allow Vercel frontend
 
 # === Constants ===
 MODEL_PATH = Path("/app/backend/models/best_model.keras")  # Absolute path for Heroku
@@ -42,7 +41,6 @@ def download_model():
                 local_dir="/app/backend/models"
             )
             print("✅ Model download complete.")
-            print(f"File exists after download: {MODEL_PATH.exists()}")
             file_size = MODEL_PATH.stat().st_size
             print(f"Downloaded file size: {file_size} bytes")
             if file_size < 1000:
@@ -144,10 +142,12 @@ def upload_image():
                 'confidence': '100%'
             })
 
-        model = load_model()
-        if model.get('status') == 'error':
-            return jsonify({'error': model['message']}), 500
+        # Load model only if not already loaded
+        model_status = load_model()
+        if model_status.get('status') == 'error':
+            return jsonify({'error': model_status['message']}), 500
 
+        # Use the global model
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
