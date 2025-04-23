@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
-import TableFoodImage from './assets/tableau.jpg'; // Background image
+import TableFoodImage from './assets/tableau.jpg';
 import Logo from './assets/logo.png';
 
 function App() {
@@ -16,24 +16,49 @@ function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [startCameraRequested, setStartCameraRequested] = useState(false);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoRef.current.srcObject = stream;
-      setIsCameraActive(true);
-      setError(null);
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      setError('Unable to access your camera. Please check permissions.');
+  useEffect(() => {
+    if (startCameraRequested && videoRef.current) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          videoRef.current.srcObject = stream;
+          setIsCameraActive(true);
+          setError(null);
+        })
+        .catch((err) => {
+          console.error('Error accessing camera:', err);
+          setError('Unable to access your camera. Please check permissions.');
+        })
+        .finally(() => {
+          setStartCameraRequested(false);
+        });
     }
+  }, [startCameraRequested]);
+
+  useEffect(() => {
+    return () => {
+      stopCamera(); // Cleanup camera on unmount
+    };
+  }, []);
+
+  const startCamera = () => {
+    setStartCameraRequested(true);
+  };
+
+  const stopCamera = () => {
+    const stream = videoRef.current?.srcObject;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    setIsCameraActive(false);
   };
 
   const capturePhoto = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
 
-    if (!video.videoWidth || !video.videoHeight) {
+    if (!video?.videoWidth || !video?.videoHeight) {
       setError('Invalid video dimensions');
       return;
     }
@@ -53,15 +78,6 @@ function App() {
     }, 'image/png', 0.95);
 
     stopCamera();
-  };
-
-  const stopCamera = () => {
-    const stream = videoRef.current.srcObject;
-    if (stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-    }
-    setIsCameraActive(false);
   };
 
   const handleFileUpload = (event) => {
@@ -146,10 +162,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <div
-        className="circular-background"
-        style={{ backgroundImage: `url(${TableFoodImage})` }}
-      ></div>
+      <div className="circular-background" style={{ backgroundImage: `url(${TableFoodImage})` }}></div>
 
       <div className="container">
         <div className="card">
