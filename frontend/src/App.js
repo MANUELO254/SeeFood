@@ -17,6 +17,7 @@ function App() {
   const canvasRef = useRef(null);
 
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraRequested, setCameraRequested] = useState(false);
 
   useEffect(() => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -24,35 +25,41 @@ function App() {
     }
   }, []);
 
-  const startCamera = () => {
-    console.log("🎥 Requesting camera access...");
+  useEffect(() => {
+    if (cameraRequested && videoRef.current) {
+      console.log("🎥 Requesting camera access...");
 
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          console.log("✅ Camera stream received:", stream);
+          const video = videoRef.current;
+          if (video) {
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+              console.log("✅ Metadata loaded, playing video");
+              video.play();
+              setIsCameraActive(true);
+              setError(null);
+            };
+          }
+        })
+        .catch((err) => {
+          console.error("❌ Camera access failed:", err);
+          setError('Camera access failed: ' + err.message);
+        })
+        .finally(() => {
+          setCameraRequested(false);
+        });
+    }
+  }, [cameraRequested]);
+
+  const startCamera = () => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('Camera is not supported in this browser.');
       return;
     }
-
-    const videoElement = videoRef.current;
-    if (!videoElement) {
-      setError('Video element not available.');
-      return;
-    }
-
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        console.log("✅ Stream received:", stream);
-        videoElement.srcObject = stream;
-        videoElement.onloadedmetadata = () => {
-          videoElement.play();
-          setIsCameraActive(true);
-          setError(null);
-        };
-      })
-      .catch((err) => {
-        console.error("❌ Camera access failed:", err);
-        setError('Camera access failed: ' + err.message);
-      });
+    setCameraRequested(true);
   };
 
   const stopCamera = () => {
