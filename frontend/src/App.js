@@ -17,7 +17,6 @@ function App() {
   const canvasRef = useRef(null);
 
   const [isCameraActive, setIsCameraActive] = useState(false);
-  const [cameraRequested, setCameraRequested] = useState(false);
 
   useEffect(() => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -25,29 +24,35 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    if (cameraRequested && videoRef.current) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((stream) => {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            setIsCameraActive(true);
-            videoRef.current.play();
-            setError(null);
-          };
-        })
-        .catch((err) => {
-          setError('Camera access failed: ' + err.message);
-        })
-        .finally(() => {
-          setCameraRequested(false);
-        });
-    }
-  }, [cameraRequested]);
-
   const startCamera = () => {
-    setCameraRequested(true);
+    console.log("🎥 Requesting camera access...");
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('Camera is not supported in this browser.');
+      return;
+    }
+
+    const videoElement = videoRef.current;
+    if (!videoElement) {
+      setError('Video element not available.');
+      return;
+    }
+
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        console.log("✅ Stream received:", stream);
+        videoElement.srcObject = stream;
+        videoElement.onloadedmetadata = () => {
+          videoElement.play();
+          setIsCameraActive(true);
+          setError(null);
+        };
+      })
+      .catch((err) => {
+        console.error("❌ Camera access failed:", err);
+        setError('Camera access failed: ' + err.message);
+      });
   };
 
   const stopCamera = () => {
