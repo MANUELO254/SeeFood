@@ -12,6 +12,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 from pathlib import Path
 from huggingface_hub import hf_hub_download
+from functools import lru_cache
 
 # === Load environment variables (.env for local, Config Vars on Heroku) ===
 dotenv_path = Path(".env")
@@ -52,20 +53,13 @@ def download_model():
         print("✅ Model already exists locally.")
 
 # === Lazy Model Loading ===
-model = None
-def load_model():
-    global model
-    if model is None:
-        print("🚀 Loading model...")
-        try:
-            download_model()
-            model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
-            print("✅ Model loaded.")
-            return {"status": "success", "message": "Model loaded successfully"}
-        except Exception as e:
-            print(f"❌ Failed to load model: {str(e)}")
-            return {"status": "error", "message": f"Failed to load model: {str(e)}"}
-    return {"status": "success", "message": "Model already loaded"}
+@lru_cache(maxsize=1)
+def get_model():
+    download_model()
+    print("🚀 Loading model from disk...")
+    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+    print("✅ Model loaded.")
+    return model
 
 # === MongoDB Atlas Setup ===
 mongo_uri = os.getenv("MONGO_URI")
@@ -116,7 +110,11 @@ def preprocess_image(image_bytes):
 # === Routes ===
 @app.route('/')
 def home():
-    model_status = load_model()
+    try:
+        get_model()
+        model_status = {"status": "success", "message": "Model loaded successfully"}
+    except Exception as e:
+        model_status = {"status": "error", "message": str(e)}
     return jsonify({
         'message': '✅ SeeFood backend is up and running!',
         'model_status': model_status
@@ -142,12 +140,12 @@ def upload_image():
                 'confidence': '100%'
             })
 
-        # Load model only if not already loaded
-        model_status = load_model()
-        if model_status.get('status') == 'error':
-            return jsonify({'error': model_status['message']}), 500
+        # Get the model (lazy-loaded)
+        try:
+            model = get_model()
+        except Exception as e:
+            return jsonify({'error': f'Model failed to load: {str(e)}'}), 500
 
-        # Use the global model
         processed = preprocess_image(img_bytes)
         prediction = model.predict(processed)
         predicted_index = np.argmax(prediction[0])
