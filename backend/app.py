@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import tflite_runtime.interpreter as tflite
 
-
 from PIL import Image
 import numpy as np
 import os
@@ -25,10 +24,11 @@ else:
 
 # === Flask App Setup ===
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})  # Allow CORS for Vercel
+CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})
 
 # === Constants ===
-MODEL_PATH = Path("/app/backend/models/best_model.tflite")
+MODEL_DIR = Path("/app/backend/models")
+MODEL_PATH = MODEL_DIR / "best_model.tflite"
 LABELS_PATH = Path("restructured_labels.csv")
 
 # === Download Model from Hugging Face ===
@@ -36,12 +36,13 @@ def download_model():
     print(f"Model path: {MODEL_PATH.resolve()}")
     if not MODEL_PATH.exists():
         print("📦 Downloading model from Hugging Face...")
-        os.makedirs(MODEL_PATH.parent, exist_ok=True)
+        os.makedirs(MODEL_DIR, exist_ok=True)
         try:
             hf_hub_download(
                 repo_id="Manuelo254/SeeFoodKeras",
                 filename="best_model.tflite",
-                local_dir="/app/backend/models"
+                local_dir=MODEL_DIR,
+                local_dir_use_symlinks=False
             )
             print("✅ Model download complete.")
             file_size = MODEL_PATH.stat().st_size
@@ -59,7 +60,7 @@ def download_model():
 def get_interpreter():
     download_model()
     print("🚀 Loading TFLite model from disk...")
-    interpreter = tflite.Interpreter(model_path="best_model.tflite")
+    interpreter = tflite.Interpreter(model_path=str(MODEL_PATH))
     interpreter.allocate_tensors()
     print("✅ TFLite model loaded.")
     return interpreter
@@ -188,19 +189,16 @@ def update_label():
 
         corrections_dir = Path('corrections') / correct_label
         corrections_dir.mkdir(parents=True, exist_ok=True)
-        filename = f"{uuid.uuid4().hex}.png"
-        file_path = corrections_dir / filename
-        with open(file_path, 'wb') as f:
+
+        filename = f"{uuid.uuid4().hex}.jpg"
+        with open(corrections_dir / filename, 'wb') as f:
             f.write(img_bytes)
 
-        with open('corrections.txt', 'a') as log_file:
-            log_file.write(f"{correct_label},{file_path}\n")
-
-        return jsonify({'message': 'Correction received, thank you!'})
+        return jsonify({'message': 'Correction saved successfully.'})
 
     except Exception as e:
         return jsonify({'error': f'Error saving correction: {str(e)}'}), 500
 
-# === Run App (for local testing only) ===
+# === Run App (for local development only) ===
 if __name__ == '__main__':
     app.run(debug=True)
