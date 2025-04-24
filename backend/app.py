@@ -26,7 +26,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})  # Allow CORS for Vercel
 
 # === Constants ===
-MODEL_PATH = Path("/app/backend/models/best_model.keras")
+MODEL_PATH = Path("/app/backend/models/best_model.tflite")
 LABELS_PATH = Path("restructured_labels.csv")
 
 # === Download Model from Hugging Face ===
@@ -37,8 +37,8 @@ def download_model():
         os.makedirs(MODEL_PATH.parent, exist_ok=True)
         try:
             hf_hub_download(
-                repo_id="Manuelo254/seefood",
-                filename="best_model.keras",
+                repo_id="Manuelo254/SeeFoodKeras",
+                filename="best_model.tflite",
                 local_dir="/app/backend/models"
             )
             print("✅ Model download complete.")
@@ -52,14 +52,15 @@ def download_model():
     else:
         print("✅ Model already exists locally.")
 
-# === Lazy Model Loading ===
+# === Lazy Model Loading (TFLite) ===
 @lru_cache(maxsize=1)
-def get_model():
+def get_interpreter():
     download_model()
-    print("🚀 Loading model from disk...")
-    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
-    print("✅ Model loaded.")
-    return model
+    print("🚀 Loading TFLite model from disk...")
+    interpreter = tf.lite.Interpreter(model_path=str(MODEL_PATH))
+    interpreter.allocate_tensors()
+    print("✅ TFLite model loaded.")
+    return interpreter
 
 # === MongoDB Atlas Setup ===
 mongo_uri = os.getenv("MONGO_URI")
@@ -104,15 +105,15 @@ def hash_image(image_bytes):
 def preprocess_image(image_bytes):
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     image = image.resize((224, 224))
-    image_array = np.array(image) / 255.0
+    image_array = np.array(image, dtype=np.float32) / 255.0
     return np.expand_dims(image_array, axis=0)
 
 # === Routes ===
 @app.route('/')
 def home():
     try:
-        get_model()
-        model_status = {"status": "success", "message": "Model loaded successfully"}
+        get_interpreter()
+        model_status = {"status": "success", "message": "TFLite model loaded successfully"}
     except Exception as e:
         model_status = {"status": "error", "message": str(e)}
     return jsonify({
@@ -140,12 +141,19 @@ def upload_image():
                 'confidence': '100%'
             })
 
-        model = get_model()
+        interpreter = get_interpreter()
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+
         processed = preprocess_image(img_bytes)
-        prediction = model.predict(processed)
-        predicted_index = np.argmax(prediction[0])
+
+        interpreter.set_tensor(input_details[0]['index'], processed)
+        interpreter.invoke()
+        output_data = interpreter.get_tensor(output_details[0]['index'])
+        
+        predicted_index = np.argmax(output_data[0])
         predicted_class = class_names.get(str(predicted_index), 'Unknown')
-        confidence = float(prediction[0][predicted_index])
+        confidence = float(output_data[0][predicted_index])
 
         return jsonify({
             'predicted_class': predicted_class,
@@ -191,5 +199,6 @@ def update_label():
     except Exception as e:
         return jsonify({'error': f'Error saving correction: {str(e)}'}), 500
 
+# === Run App (for local testing only) ===
 if __name__ == '__main__':
     app.run(debug=True)
