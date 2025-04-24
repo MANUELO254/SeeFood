@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify 
 from flask_cors import CORS
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite
+
+
 from PIL import Image
 import numpy as np
 import os
@@ -57,7 +59,7 @@ def download_model():
 def get_interpreter():
     download_model()
     print("🚀 Loading TFLite model from disk...")
-    interpreter = tf.lite.Interpreter(model_path=str(MODEL_PATH))
+    interpreter = tflite.Interpreter(model_path="best_model.tflite")
     interpreter.allocate_tensors()
     print("✅ TFLite model loaded.")
     return interpreter
