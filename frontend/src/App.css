@@ -113,13 +113,6 @@ html {
   margin-bottom: 20px;
 }
 
-input[type="file"] {
-  display: block;
-  margin: 10px auto;
-  padding: 5px;
-  color: white;
-}
-
 /* Image preview */
 .image-preview {
   max-width: 100%;
@@ -223,7 +216,7 @@ button:disabled {
   }
 }
 
-/* Modal styles for correction */
+/* Modal styles for correction and upload choice */
 .modal {
   position: fixed;
   top: 0;
@@ -286,6 +279,30 @@ button:disabled {
 
 .modal-buttons button:first-child {
   background-color: #98ff98;
+}
+
+.modal-buttons button:nth-child(2) {
+  background-color: #4db6ff; /* Blue for gallery button */
+  box-shadow: 0 0 8px #4db6ff, 0 0 20px #4db6ff inset;
+  animation: neonPulseBlue 2s infinite alternate;
+}
+
+.modal-buttons button:nth-child(2)::before {
+  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
+}
+
+.modal-buttons button:nth-child(2):hover {
+  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
+  box-shadow: 0 0 15px #4db6ff, 0 0 40px #4db6ff inset;
+}
+
+@keyframes neonPulseBlue {
+  0% {
+    box-shadow: 0 0 10px #4db6ff, 0 0 20px #4db6ff inset;
+  }
+  100% {
+    box-shadow: 0 0 25px #4db6ff, 0 0 50px #4db6ff inset;
+  }
 }
 
 .modal-buttons button:last-child {
