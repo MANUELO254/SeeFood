@@ -1,13 +1,30 @@
 /* Reset and global styles */
+:root {
+  --primary-color: #231f20;
+  --accent-color: #98ff98;
+  --error-color: #ff6b6b;
+  --success-color: #4db6ff;
+  --card-bg: linear-gradient(135deg, #231f20, #333333);
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: system-ui, -apple-system, Arial, sans-serif;
   min-height: 100vh;
   overflow-y: auto;
-  background-color: #231f20;
+  background-color: var(--primary-color);
   display: flex;
   justify-content: center;
   align-items: center;
+  color: white;
 }
 
 body,
@@ -27,12 +44,6 @@ html {
   }
 }
 
-/* Remove scale-wrapper to avoid scaling issues */
-.scale-wrapper {
-  width: 100%;
-  max-width: 1200px; /* Reduced max-width for better mobile fit */
-}
-
 /* Main app container */
 .app-container {
   position: relative;
@@ -40,17 +51,18 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #231f20;
+  background-color: var(--primary-color);
   flex-direction: column;
-  padding: 10px; /* Reduced padding for mobile */
+  padding: 10px;
+  backdrop-filter: blur(4px);
 }
 
 /* Circular background image */
 .circular-background {
   position: absolute;
-  width: 100vw; /* Full viewport width */
-  height: 100vw; /* Maintain aspect ratio */
-  max-width: 500px; /* Cap size for larger screens */
+  width: 100vw;
+  height: 100vw;
+  max-width: 500px;
   max-height: 500px;
   border-radius: 50%;
   background-image: url('./assets/tableau.jpg');
@@ -58,10 +70,11 @@ html {
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0;
-  opacity: 0.8; /* Slightly reduced opacity for better contrast */
+  opacity: 0.8;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* Center the background */
+  transform: translate(-50%, -50%);
+  filter: blur(2px);
 }
 
 /* Container for content */
@@ -70,45 +83,53 @@ html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%; /* Fixed from 200% */
-  max-width: 600px; /* Limit width for better centering */
+  width: 100%;
+  max-width: 600px;
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  padding: 20px 10px; /* Adjusted padding */
+  padding: 20px 10px;
+  gap: 20px;
 }
 
-/* Rectangular card */
+/* Card styling */
 .card {
-  background: linear-gradient(135deg, #231f20, #333333);
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   max-width: 400px;
   width: 90%;
   text-align: center;
-  color: white;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
 }
 
 /* Error messages */
 .error {
-  color: red;
-  background-color: #ffebee;
+  color: var(--error-color);
+  background-color: rgba(255, 107, 107, 0.1);
   padding: 10px;
   margin-bottom: 15px;
   border-radius: 5px;
+  text-align: center;
 }
 
 /* Camera container */
 .camera-container {
   margin-bottom: 20px;
+  width: 100%;
+  max-width: 335px;
 }
 
 .video-preview {
   width: 100%;
-  max-width: 335px;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 10px;
+  aspect-ratio: 4/3;
 }
 
 /* File input container */
@@ -121,15 +142,16 @@ html {
   max-width: 100%;
   max-height: 300px;
   object-fit: contain;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Neon mint green reactive buttons */
 button {
   margin: 8px;
   padding: 12px 20px;
-  background-color: #98ff98;
+  background-color: var(--accent-color);
   color: #000;
   border: none;
   border-radius: 8px;
@@ -139,7 +161,7 @@ button {
   position: relative;
   z-index: 1;
   transition: all 0.3s ease;
-  box-shadow: 0 0 8px #98ff98, 0 0 20px #98ff98 inset;
+  box-shadow: 0 0 8px var(--accent-color), 0 0 20px var(--accent-color) inset;
   animation: neonPulse 2s infinite alternate;
 }
 
@@ -165,16 +187,16 @@ button:hover::before {
 button:hover {
   background: linear-gradient(135deg, #b0ffc2, #82ffab);
   color: #000;
-  box-shadow: 0 0 15px #98ff98, 0 0 40px #98ff98 inset;
+  box-shadow: 0 0 15px var(--accent-color), 0 0 40px var(--accent-color) inset;
   transform: scale(1.05);
 }
 
 @keyframes neonPulse {
   0% {
-    box-shadow: 0 0 10px #98ff98, 0 0 20px #98ff98 inset;
+    box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color) inset;
   }
   100% {
-    box-shadow: 0 0 25px #98ff98, 0 0 50px #98ff98 inset;
+    box-shadow: 0 0 25px var(--accent-color), 0 0 50px var(--accent-color) inset;
   }
 }
 
@@ -185,41 +207,7 @@ button:disabled {
   box-shadow: none;
 }
 
-/* Prediction result container */
-.result-container {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f5f5f5;
-  border-radius: 5px;
-  color: #000;
-}
-
-/* Wrong Prediction button */
-.correction-button {
-  background-color: #ff6b6b;
-  box-shadow: 0 0 8px #ff6b6b, 0 0 20px #ff6b6b inset;
-  animation: neonPulseRed 2s infinite alternate;
-}
-
-.correction-button::before {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-}
-
-.correction-button:hover {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-  box-shadow: 0 0 15px #ff6b6b, 0 0 40px #ff6b6b inset;
-}
-
-@keyframes neonPulseRed {
-  0% {
-    box-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b inset;
-  }
-  100% {
-    box-shadow: 0 0 25px #ff6b6b, 0 0 50px #ff6b6b inset;
-  }
-}
-
-/* Modal styles for correction and upload choice */
+/* Modal styles */
 .modal {
   position: fixed;
   top: 0;
@@ -234,111 +222,36 @@ button:disabled {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #231f20, #333333);
+  background: var(--card-bg);
   padding: 20px;
   border-radius: 10px;
   max-width: 400px;
   width: 90%;
   text-align: center;
   color: white;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.modal-content h3 {
-  margin: 0 0 15px;
-  font-size: 24px;
-}
-
-.modal-content p {
-  margin: 0 0 15px;
-  font-size: 16px;
-}
-
-.correction-input {
-  width: 80%;
-  padding: 10px;
-  margin: 10px auto;
-  border: 1px solid #98ff98;
-  border-radius: 5px;
-  background-color: #333333;
-  color: white;
-  font-size: 16px;
-}
-
-.correction-input::placeholder {
-  color: #aaaaaa;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
-.modal-buttons button {
-  padding: 10px 20px;
-  font-size: 14px;
-}
-
-.modal-buttons button:first-child {
-  background-color: #98ff98;
-}
-
-.modal-buttons button:nth-child(2) {
-  background-color: #4db6ff;
-  box-shadow: 0 0 8px #4db6ff, 0 0 20px #4db6ff inset;
-  animation: neonPulseBlue 2s infinite alternate;
-}
-
-.modal-buttons button:nth-child(2)::before {
-  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
-}
-
-.modal-buttons button:nth-child(2):hover {
-  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
-  box-shadow: 0 0 15px #4db6ff, 0 0 40px #4db6ff inset;
-}
-
-@keyframes neonPulseBlue {
-  0% {
-    box-shadow: 0 0 10px #4db6ff, 0 0 20px #4db6ff inset;
-  }
-  100% {
-    box-shadow: 0 0 25px #4db6ff, 0 0 50px #4db6ff inset;
-  }
-}
-
-.modal-buttons button:last-child {
-  background-color: #ff6b6b;
-  box-shadow: 0 0 8px #ff6b6b, 0 0 20px #ff6b6b inset;
-  animation: neonPulseRed 2s infinite alternate;
-}
-
-.modal-buttons button:last-child::before {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-}
-
-.modal-buttons button:last-child:hover {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-  box-shadow: 0 0 15px #ff6b6b, 0 0 40px #ff6b6b inset;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
 }
 
 /* Responsive design */
 @media screen and (max-width: 768px) {
   .circular-background {
-    width: 80vw; /* Slightly smaller for mobile */
+    width: 80vw;
     height: 80vw;
     max-width: 400px;
     max-height: 400px;
+    opacity: 0.6;
   }
 
   .container {
     padding: 10px;
-    max-width: 90%; /* Ensure content fits mobile viewport */
+    max-width: 90%;
+    gap: 15px;
   }
 
   .card {
     width: 95%;
+    padding: 15px;
   }
 
   .image-preview {
@@ -350,20 +263,9 @@ button:disabled {
     padding: 15px;
   }
 
-  .modal-content h3 {
-    font-size: 20px;
-  }
-
-  .modal-content p {
-    font-size: 14px;
-  }
-
-  .correction-input {
-    width: 90%;
-  }
-
   .modal-buttons {
     flex-direction: column;
+    gap: 10px;
   }
 
   .modal-buttons button {
@@ -376,5 +278,5 @@ button:disabled {
 .logo {
   width: 100px;
   margin-bottom: 15px;
-  filter: drop-shadow(0 0 5px #98ff98);
+  filter: drop-shadow(0 0 5px var(--accent-color));
 }
