@@ -52,6 +52,7 @@ html {
   width: 500px;
   height: 500px;
   border-radius: 50%;
+  background-image: url("/assets/tableau.jpg"); /* This caused the build error */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -63,6 +64,7 @@ html {
   display: block !important;
   visibility: visible !important;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  background-color: #ff0000; /* Fallback for debugging */
 }
 
 /* Container for content */
@@ -141,7 +143,7 @@ button {
   z-index: 1;
   transition: all 0.3s ease;
   box-shadow: 0 0 8px #98ff98, 0 0 20px #98ff98 inset;
-  animation: neonPulse 2s infinite alternate;
+  animation: neonPulse számítógép 2s infinite alternate;
 }
 
 button::before {
