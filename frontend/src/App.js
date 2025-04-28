@@ -1,6 +1,6 @@
 // App.js
 
-import React, { useState, useRef, useEffect } from 'react'; 
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import Logo from './assets/logo.png';
@@ -227,53 +227,61 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="circular-background"></div>
       <div className="container">
-        <div className="card">
-          <img src={Logo} alt="Logo" className="logo" />
-          <h1>SeeFood Image Recognition</h1>
-          <p>Upload an image or take a photo to recognize the food.</p>
+        <div className="circular-background">
+          <div className="card">
+            <img src={Logo} alt="Logo" className="logo" />
+            <h1>SeeFood Image Recognition</h1>
+            <p>Upload an image or take a photo to recognize the food.</p>
 
-          {error && <div className="error">{error}</div>}
+            {error && <div className="error">{error}</div>}
 
-          <div className="camera-container" style={{ display: isCameraActive ? 'block' : 'none' }}>
-            <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
-            <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
-            <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
+            <div className="camera-container" style={{ display: isCameraActive ? 'block' : 'none' }}>
+              <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
+              <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
+              <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
+            </div>
+
+            {!isCameraActive && (
+              <div className="file-input-container">
+                <button onClick={() => setShowUploadModal(true)} disabled={loading}>
+                  📷 Upload Image
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={loading}
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            )}
+
+            {preview && <img src={preview} alt="Preview" className="image-preview" />}
+            <button onClick={handleSubmit} disabled={loading || !image}>
+              {loading ? '⏳ Processing...' : '✅ Submit Image'}
+            </button>
+            <button onClick={resetAll} disabled={loading}>🔄 Reset</button>
+
+            {result && (
+              <div className="result-container">
+                <h2>Prediction Result:</h2>
+                <p>
+                  <strong>Class:</strong> {result.predicted_class}
+                </p>
+                <p>
+                  <strong>Confidence:</strong> {result.confidence}
+                </p>
+                <button
+                  className="correction-button"
+                  onClick={() => setShowCorrectionModal(true)}
+                >
+                  🛠 Wrong Prediction?
+                </button>
+              </div>
+            )}
           </div>
-
-          {!isCameraActive && (
-            <div className="file-input-container">
-              <button onClick={() => setShowUploadModal(true)} disabled={loading}>
-                📷 Upload Image
-              </button>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                disabled={loading}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-              />
-            </div>
-          )}
-
-          {preview && <img src={preview} alt="Preview" className="image-preview" />}
-          <button onClick={handleSubmit} disabled={loading || !image}>
-            {loading ? '⏳ Processing...' : '✅ Submit Image'}
-          </button>
-          <button onClick={resetAll} disabled={loading}>🔄 Reset</button>
-
-          {result && (
-            <div className="result-container">
-              <h2>Prediction Result:</h2>
-              <p><strong>Class:</strong> {result.predicted_class}</p>
-              <p><strong>Confidence:</strong> {result.confidence}</p>
-              <button className="correction-button" onClick={() => setShowCorrectionModal(true)}>
-                🛠 Wrong Prediction?
-              </button>
-            </div>
-          )}
         </div>
 
         {showUploadModal && (
@@ -302,7 +310,9 @@ function App() {
                 className="correction-input"
               />
               <div className="modal-buttons">
-                <button onClick={handleCorrectionSubmit} disabled={!correctLabel}>Submit</button>
+                <button onClick={handleCorrectionSubmit} disabled={!correctLabel}>
+                  Submit
+                </button>
                 <button onClick={() => setShowCorrectionModal(false)}>Cancel</button>
               </div>
             </div>
