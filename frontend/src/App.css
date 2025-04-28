@@ -1,116 +1,427 @@
-/* ===== General Styles ===== */
+/* Reset and global styles */
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
-  background-color: #121212;
-  color: #ffffff;
-  overflow-x: hidden;
+  font-family: Arial, sans-serif;
   min-height: 100vh;
-  position: relative;
+  overflow-y: auto;
+  background-color: #231f20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* ===== Circular Neon Background ===== */
+body,
+html {
+  animation: fadeIn 1.5s ease-in;
+  scroll-behavior: smooth;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Remove scale-wrapper to avoid scaling issues */
+.scale-wrapper {
+  width: 100%;
+  max-width: 1200px; /* Reduced max-width for better mobile fit */
+}
+
+/* Main app container */
+.app-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #231f20;
+  flex-direction: column;
+  padding: 10px; /* Reduced padding for mobile */
+}
+
+/* Circular background image */
 .circular-background {
-  position: fixed;
+  position: absolute;
+  width: 100vw; /* Full viewport width */
+  height: 100vw; /* Maintain aspect ratio */
+  max-width: 500px; /* Cap size for larger screens */
+  max-height: 500px;
+  border-radius: 50%;
+  background-image: url('./assets/tableau.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  opacity: 0.8; /* Slightly reduced opacity for better contrast */
   top: 50%;
   left: 50%;
-  width: 150vw;
-  height: 150vh;
-  background: radial-gradient(circle at center, #00ffcc33 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  opacity: 0.4;
-  pointer-events: none;
+  transform: translate(-50%, -50%); /* Center the background */
 }
 
-/* ===== Main Container ===== */
+/* Container for content */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  width: 100%; /* Fixed from 200% */
+  max-width: 600px; /* Limit width for better centering */
   min-height: 100vh;
-  text-align: center;
+  position: relative;
+  z-index: 1;
+  padding: 20px 10px; /* Adjusted padding */
 }
 
-/* ===== Upload Section ===== */
-.upload-section {
-  background-color: #1e1e1e;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 0 20px #00ffcc, 0 0 30px #00ccff;
-  width: 90%;
-  max-width: 500px;
-  margin-bottom: 2rem;
-}
-
-/* ===== Buttons ===== */
-.button {
-  background: linear-gradient(45deg, #00ffcc, #00ccff);
-  border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 30px;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
-  box-shadow: 0 0 15px #00ffcc, 0 0 25px #00ccff;
-}
-
-.button:hover {
-  background: linear-gradient(45deg, #00ccff, #00ffcc);
-  box-shadow: 0 0 25px #00ccff, 0 0 35px #00ffcc;
-  transform: scale(1.05);
-}
-
-/* ===== Results Section ===== */
-.results {
-  background-color: #1e1e1e;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 0 20px #ff0066, 0 0 30px #ff3399;
-  width: 90%;
-  max-width: 500px;
-  margin-top: 2rem;
-}
-
-/* ===== Image Preview ===== */
-.image-preview {
-  margin-top: 1rem;
-  max-width: 100%;
+/* Rectangular card */
+.card {
+  background: linear-gradient(135deg, #231f20, #333333);
+  padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 15px #00ffcc;
-}
-
-/* ===== Correction Modal ===== */
-.modal {
-  background-color: #1e1e1e;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 0 30px #ff0066, 0 0 40px #ff3399;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
   text-align: center;
-}
-
-.modal input {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  border-radius: 10px;
-  border: none;
-  width: 80%;
-  background-color: #2c2c2c;
   color: white;
 }
 
-.modal button {
-  margin-top: 1rem;
+/* Error messages */
+.error {
+  color: red;
+  background-color: #ffebee;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
 }
 
-/* ===== Responsive Design ===== */
-@media (max-width: 600px) {
-  .upload-section,
-  .results {
+/* Camera container */
+.camera-container {
+  margin-bottom: 20px;
+}
+
+.video-preview {
+  width: 100%;
+  max-width: 335px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+/* File input container */
+.file-input-container {
+  margin-bottom: 20px;
+}
+
+/* Image preview */
+.image-preview {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+/* Neon mint green reactive buttons */
+button {
+  margin: 8px;
+  padding: 12px 20px;
+  background-color: #98ff98;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 8px #98ff98, 0 0 20px #98ff98 inset;
+  animation: neonPulse 2s infinite alternate;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(135deg, #b0ffc2, #82ffab);
+  border-radius: 10px;
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+button:hover::before {
+  opacity: 1;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #b0ffc2, #82ffab);
+  color: #000;
+  box-shadow: 0 0 15px #98ff98, 0 0 40px #98ff98 inset;
+  transform: scale(1.05);
+}
+
+@keyframes neonPulse {
+  0% {
+    box-shadow: 0 0 10px #98ff98, 0 0 20px #98ff98 inset;
+  }
+  100% {
+    box-shadow: 0 0 25px #98ff98, 0 0 50px #98ff98 inset;
+  }
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  animation: none;
+  box-shadow: none;
+}
+
+/* Prediction result container */
+.result-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  color: #000;
+}
+
+/* Wrong Prediction button */
+.correction-button {
+  background-color: #ff6b6b;
+  box-shadow: 0 0 8px #ff6b6b, 0 0 20px #ff6b6b inset;
+  animation: neonPulseRed 2s infinite alternate;
+}
+
+.correction-button::before {
+  background: linear-gradient(135deg, #ff8787, #ff4d4d);
+}
+
+.correction-button:hover {
+  background: linear-gradient(135deg, #ff8787, #ff4d4d);
+  box-shadow: 0 0 15px #ff6b6b, 0 0 40px #ff6b6b inset;
+}
+
+@keyframes neonPulseRed {
+  0% {
+    box-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b inset;
+  }
+  100% {
+    box-shadow: 0 0 25px #ff6b6b, 0 0 50px #ff6b6b inset;
+  }
+}
+
+/* Modal styles for correction and upload choice */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #231f20, #333333);
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  color: white;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h3 {
+  margin: 0 0 15px;
+  font-size: 24px;
+}
+
+.modal-content p {
+  margin: 0 0 15px;
+  font-size: 16px;
+}
+
+.correction-input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px auto;
+  border: 1px solid #98ff98;
+  border-radius: 5px;
+  background-color: #333333;
+  color: white;
+  font-size: 16px;
+}
+
+.correction-input::placeholder {
+  color: #aaaaaa;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.modal-buttons button:first-child {
+  background-color: #98ff98;
+}
+
+.modal-buttons button:nth-child(2) {
+  background-color: #4db6ff;
+  box-shadow: 0 0 8px #4db6ff, 0 0 20px #4db6ff inset;
+  animation: neonPulseBlue 2s infinite alternate;
+}
+
+.modal-buttons button:nth-child(2)::before {
+  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
+}
+
+.modal-buttons button:nth-child(2):hover {
+  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
+  box-shadow: 0 0 15px #4db6ff, 0 0 40px #4db6ff inset;
+}
+
+@keyframes neonPulseBlue {
+  0% {
+    box-shadow: 0 0 10px #4db6ff, 0 0 20px #4db6ff inset;
+  }
+  100% {
+    box-shadow: 0 0 25px #4db6ff, 0 0 50px #4db6ff inset;
+  }
+}
+
+.modal-buttons button:last-child {
+  background-color: #ff6b6b;
+  box-shadow: 0 0 8px #ff6b6b, 0 0 20px #ff6b6b inset;
+  animation: neonPulseRed 2s infinite alternate;
+}
+
+.modal-buttons button:last-child::before {
+  background: linear-gradient(135deg, #ff8787, #ff4d4d);
+}
+
+.modal-buttons button:last-child:hover {
+  background: linear-gradient(135deg, #ff8787, #ff4d4d);
+  box-shadow: 0 0 15px #ff6b6b, 0 0 40px #ff6b6b inset;
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+  .circular-background {
+    width: 80vw; /* Slightly smaller for mobile */
+    height: 80vw;
+    max-width: 400px;
+    max-height: 400px;
+  }
+
+  .container {
+    padding: 10px;
+    max-width: 90%; /* Ensure content fits mobile viewport */
+  }
+
+  .card {
     width: 95%;
+  }
+
+  .image-preview {
+    max-height: 250px;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .modal-content h3 {
+    font-size: 20px;
+  }
+
+  .modal-content p {
+    font-size: 14px;
+  }
+
+  .correction-input {
+    width: 90%;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+  }
+
+  .modal-buttons button {
+    margin: 5px 0;
+    width: 100%;
+  }
+}
+
+/* Logo */
+.logo {
+  width: 100px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 5px #98ff98);
+}
+/* Responsive tweaks for smaller devices */
+@media (max-width: 768px) {
+  .circular-background {
+    width: 80vw; /* smaller circle */
+    height: 80vw;
+    max-width: 300px;
+    max-height: 300px;
+    opacity: 0.6; /* lighter opacity for better contrast */
+  }
+
+  .app-container {
+    padding: 5px;
+  }
+
+  .container {
+    padding: 10px;
+    min-height: auto; /* remove forced 100vh which causes extra scrolling */
+  }
+
+  .card {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .video-preview {
+    max-width: 100%;
+  }
+
+  .image-preview {
+    max-width: 100%;
+    max-height: 200px; /* smaller images for phones */
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-buttons button {
+    width: 100%;
   }
 }
