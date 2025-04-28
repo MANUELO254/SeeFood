@@ -144,7 +144,7 @@ function App() {
     canvas.toBlob((blob) => {
       const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
       setImage(file);
-      setPreview(URL.createObjectURL(blob.")]
+      setPreview(URL.createObjectURL(blob.")
       stopCamera();
     }, 'image/jpeg');
   };
