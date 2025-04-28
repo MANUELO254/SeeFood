@@ -12,9 +12,11 @@ function App() {
   const [result, setResult] = useState(null);
   const [correctLabel, setCorrectLabel] = useState('');
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false); // New state for upload choice modal
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null); // Ref for hidden file input
 
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraRequested, setCameraRequested] = useState(false);
@@ -59,6 +61,7 @@ function App() {
       return;
     }
     setCameraRequested(true);
+    setShowUploadModal(false); // Close modal when camera starts
   };
 
   const stopCamera = () => {
@@ -84,6 +87,7 @@ function App() {
       const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
       setImage(file);
       setPreview(URL.createObjectURL(blob));
+      stopCamera(); // Stop camera after capturing
     }, 'image/jpeg');
   };
 
@@ -96,6 +100,13 @@ function App() {
     }
     setImage(file);
     setPreview(URL.createObjectURL(file));
+    setShowUploadModal(false); // Close modal after file selection
+  };
+
+  const openFilePicker = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click(); // Trigger file input click
+    }
   };
 
   const handleSubmit = async () => {
@@ -105,7 +116,7 @@ function App() {
     setResult(null);
 
     const formData = new FormData();
-    formData.append('file', image); // Changed from 'image' to 'file'
+    formData.append('file', image);
 
     try {
       const res = await axios.post('https://seefood-66db0271b856.herokuapp.com/upload', formData);
@@ -122,7 +133,7 @@ function App() {
     if (!correctLabel || !image) return;
 
     const formData = new FormData();
-    formData.append('file', image); // Changed from 'image' to 'file'
+    formData.append('file', image);
     formData.append('correct_label', correctLabel);
 
     try {
@@ -143,6 +154,7 @@ function App() {
     setError(null);
     setCorrectLabel('');
     setShowCorrectionModal(false);
+    setShowUploadModal(false);
     stopCamera();
   };
 
@@ -165,14 +177,24 @@ function App() {
             </div>
           ) : (
             <div className="file-input-container">
-              <button onClick={startCamera} disabled={loading}>📷 Start Camera</button>
-              <input type="file" accept="image/*" onChange={handleFileUpload} disabled={loading} />
+              <button onClick={() => setShowUploadModal(true)} disabled={loading}>
+                📷 Upload Image
+              </button>
+              {/* Hidden file input */}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={loading}
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+              />
             </div>
           )}
 
           {preview && <img src={preview} alt="Preview" className="image-preview" />}
           <button onClick={handleSubmit} disabled={loading || !image}>
-            {loading ? '⏳ Processing...' : '✅ Upload Image'}
+            {loading ? '⏳ Processing...' : '✅ Submit Image'}
           </button>
           <button onClick={resetAll} disabled={loading}>🔄 Reset</button>
 
@@ -188,6 +210,22 @@ function App() {
           )}
         </div>
 
+        {/* Upload Choice Modal */}
+        {showUploadModal && (
+          <div className="modal">
+            <div className="modal-content">
+              <h3>Choose Image Source</h3>
+              <p>Select how you'd like to upload your image:</p>
+              <div className="modal-buttons">
+                <button onClick={startCamera}>📸 Take Photo</button>
+                <button onClick={openFilePicker}>🖼️ Choose from Gallery</button>
+                <button onClick={() => setShowUploadModal(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Correction Modal */}
         {showCorrectionModal && (
           <div className="modal">
             <div className="modal-content">
@@ -197,6 +235,7 @@ function App() {
                 value={correctLabel}
                 onChange={(e) => setCorrectLabel(e.target.value)}
                 placeholder="Correct food label"
+                className="correction-input"
               />
               <div className="modal-buttons">
                 <button onClick={handleCorrectionSubmit} disabled={!correctLabel}>Submit</button>
