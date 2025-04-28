@@ -37,10 +37,9 @@ function App() {
   useEffect(() => {
     if (cameraRequested && videoRef.current) {
       console.log('🎥 Initiating camera access...');
-      // Use more specific constraints for compatibility
       const constraints = {
         video: {
-          facingMode: 'environment', // Prefer rear camera on mobile
+          facingMode: 'environment',
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -77,7 +76,6 @@ function App() {
           setCameraRequested(false);
         });
 
-      // Fallback timeout if camera doesn't start
       const timeout = setTimeout(() => {
         if (!isCameraActive) {
           console.warn('❌ Camera failed to start within 5 seconds');
@@ -144,7 +142,7 @@ function App() {
     canvas.toBlob((blob) => {
       const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
       setImage(file);
-      setPreview(URL.createObjectURL(blob.")
+      setPreview(URL.createObjectURL(blob));
       stopCamera();
     }, 'image/jpeg');
   };
