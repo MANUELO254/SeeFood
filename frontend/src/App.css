@@ -30,7 +30,7 @@ html {
 /* Remove scale-wrapper to avoid scaling issues */
 .scale-wrapper {
   width: 100%;
-  max-width: 1200px; /* Reduced max-width for better mobile fit */
+  max-width: 1200px;
 }
 
 /* Main app container */
@@ -42,26 +42,27 @@ html {
   justify-content: center;
   background-color: #231f20;
   flex-direction: column;
-  padding: 10px; /* Reduced padding for mobile */
+  padding: 10px;
+  overflow: visible; /* Ensure no clipping */
 }
 
 /* Circular background image */
 .circular-background {
   position: absolute;
-  width: 100vw; /* Full viewport width */
-  height: 100vw; /* Maintain aspect ratio */
-  max-width: 500px; /* Cap size for larger screens */
-  max-height: 500px;
+  width: 500px;
+  height: 500px;
   border-radius: 50%;
   background-image: url('./assets/tableau.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 0;
-  opacity: 0.8; /* Slightly reduced opacity for better contrast */
+  z-index: -1; /* Moved behind all content */
+  opacity: 1; /* Full visibility */
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* Center the background */
+  transform: translate(-50%, -50%);
+  /* Debugging: Add border to check position */
+  border: 2px solid red; /* Remove after confirming visibility */
 }
 
 /* Container for content */
@@ -70,12 +71,12 @@ html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%; /* Fixed from 200% */
-  max-width: 600px; /* Limit width for better centering */
+  width: 100%;
+  max-width: 600px;
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  padding: 20px 10px; /* Adjusted padding */
+  padding: 20px 10px;
 }
 
 /* Rectangular card */
@@ -326,15 +327,15 @@ button:disabled {
 /* Responsive design */
 @media screen and (max-width: 768px) {
   .circular-background {
-    width: 80vw; /* Slightly smaller for mobile */
-    height: 80vw;
-    max-width: 400px;
-    max-height: 400px;
+    width: 300px;
+    height: 300px;
+    max-width: 300px;
+    max-height: 300px;
   }
 
   .container {
     padding: 10px;
-    max-width: 90%; /* Ensure content fits mobile viewport */
+    max-width: 90%;
   }
 
   .card {
@@ -369,6 +370,15 @@ button:disabled {
   .modal-buttons button {
     margin: 5px 0;
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .circular-background {
+    width: 250px;
+    height: 250px;
+    max-width: 250px;
+    max-height: 250px;
   }
 }
 
