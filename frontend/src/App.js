@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
-import TableFoodImage from './assets/tableau.jpg';
 import Logo from './assets/logo.png';
+import TableFoodImage from './assets/tableau.jpg'; // Import the image
 
 function App() {
   const [image, setImage] = useState(null);
@@ -22,7 +22,6 @@ function App() {
   const [cameraRequested, setCameraRequested] = useState(false);
 
   useEffect(() => {
-    // Check for camera support and secure context
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('Camera is not supported in this browser.');
       console.warn('❌ navigator.mediaDevices.getUserMedia not available');
