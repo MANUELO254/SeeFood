@@ -28,7 +28,6 @@ function App() {
   useEffect(() => {
     if (cameraRequested && videoRef.current) {
       console.log("🎥 Requesting camera access...");
-
       navigator.mediaDevices
         .getUserMedia({ video: true })
         .then((stream) => {
@@ -91,6 +90,10 @@ function App() {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file (e.g., JPEG, PNG).');
+      return;
+    }
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
@@ -102,13 +105,14 @@ function App() {
     setResult(null);
 
     const formData = new FormData();
-    formData.append('image', image);
+    formData.append('file', image); // Changed from 'image' to 'file'
 
     try {
       const res = await axios.post('https://seefood-66db0271b856.herokuapp.com/upload', formData);
       setResult(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Upload failed.');
+      console.error('Upload error:', err.response?.data, err.message);
+      setError(err.response?.data?.error || 'Upload failed.');
     } finally {
       setLoading(false);
     }
@@ -118,7 +122,7 @@ function App() {
     if (!correctLabel || !image) return;
 
     const formData = new FormData();
-    formData.append('image', image);
+    formData.append('file', image); // Changed from 'image' to 'file'
     formData.append('correct_label', correctLabel);
 
     try {
@@ -127,7 +131,8 @@ function App() {
       setShowCorrectionModal(false);
       setCorrectLabel('');
     } catch (err) {
-      alert('Correction failed.');
+      console.error('Correction error:', err.response?.data, err.message);
+      alert('Correction failed: ' + (err.response?.data?.error || 'Unknown error'));
     }
   };
 
