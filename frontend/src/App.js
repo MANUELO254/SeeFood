@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import Logo from './assets/logo.png';
-import TableFoodImage from './assets/tableau.jpg'; // Import the image
 
 function App() {
   const [image, setImage] = useState(null);
@@ -226,7 +225,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="circular-background" style={{ backgroundImage: `url(${TableFoodImage})` }}></div>
+      <div className="circular-background"></div>
       <div className="container">
         <div className="card">
           <img src={Logo} alt="Logo" className="logo" />
