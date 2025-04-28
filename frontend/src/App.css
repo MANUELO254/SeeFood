@@ -27,12 +27,10 @@ html {
   }
 }
 
-/* Scale wrapper to shrink everything inside by 80% */
+/* Remove scale-wrapper to avoid scaling issues */
 .scale-wrapper {
-  transform: scale(0.8);
-  transform-origin: top center;
   width: 100%;
-  max-width: 1600px;
+  max-width: 1200px; /* Reduced max-width for better mobile fit */
 }
 
 /* Main app container */
@@ -44,38 +42,43 @@ html {
   justify-content: center;
   background-color: #231f20;
   flex-direction: column;
-  padding: 20px;
+  padding: 10px; /* Reduced padding for mobile */
 }
 
 /* Circular background image */
 .circular-background {
   position: absolute;
-  width: 650px;
-  height: 650px;
+  width: 100vw; /* Full viewport width */
+  height: 100vw; /* Maintain aspect ratio */
+  max-width: 500px; /* Cap size for larger screens */
+  max-height: 500px;
   border-radius: 50%;
   background-image: url('./assets/tableau.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0;
-  opacity: 1;
-  image-rendering: auto;
+  opacity: 0.8; /* Slightly reduced opacity for better contrast */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the background */
 }
 
-/* Container for content above background */
+/* Container for content */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 200%;
+  width: 100%; /* Fixed from 200% */
+  max-width: 600px; /* Limit width for better centering */
   min-height: 100vh;
   position: relative;
   z-index: 1;
-  padding: 30px 0;
+  padding: 20px 10px; /* Adjusted padding */
 }
 
-/* Rectangular card with reverse color */
+/* Rectangular card */
 .card {
   background: linear-gradient(135deg, #231f20, #333333);
   padding: 20px;
@@ -282,7 +285,7 @@ button:disabled {
 }
 
 .modal-buttons button:nth-child(2) {
-  background-color: #4db6ff; /* Blue for gallery button */
+  background-color: #4db6ff;
   box-shadow: 0 0 8px #4db6ff, 0 0 20px #4db6ff inset;
   animation: neonPulseBlue 2s infinite alternate;
 }
@@ -321,18 +324,25 @@ button:disabled {
 }
 
 /* Responsive design */
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
+  .circular-background {
+    width: 80vw; /* Slightly smaller for mobile */
+    height: 80vw;
+    max-width: 400px;
+    max-height: 400px;
+  }
+
+  .container {
+    padding: 10px;
+    max-width: 90%; /* Ensure content fits mobile viewport */
+  }
+
   .card {
     width: 95%;
   }
 
   .image-preview {
     max-height: 250px;
-  }
-
-  .circular-background {
-    width: 90vw;
-    height: 90vw;
   }
 
   .modal-content {
