@@ -91,395 +91,238 @@ function App() {
       setError('Camera initialization failed: video element not ready.');
       setCameraRequested(false);
     }
-  }, [cameraRequested, Copenhagen
+  }, [cameraRequested, isCameraActive]);
 
-System: The response was cut off, likely due to a character limit or processing issue. Below, I’ll complete the response by providing the full, corrected `App.js` and `App.css` codes, addressing the syntax error in `App.css` and ensuring the image path for `tableau.jpg` is correct for your project structure (`frontend/src/assets/tableau.jpg`). I’ll also include detailed Vercel deployment instructions and troubleshooting steps to prevent further build failures.
+  const startCamera = () => {
+    console.log('📸 startCamera called');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('Camera is not supported in this browser.');
+      console.warn('❌ Camera not supported');
+      return;
+    }
+    if (!window.isSecureContext) {
+      setError('Camera access requires a secure context (HTTPS).');
+      console.warn('❌ Not in secure context');
+      return;
+    }
+    if (!videoRef.current) {
+      setError('Camera initialization failed: video element not found.');
+      console.error('❌ videoRef.current is null');
+      return;
+    }
+    setCameraRequested(true);
+    setShowUploadModal(false);
+  };
 
-### Corrected `App.css`
+  const stopCamera = () => {
+    console.log('🛑 Stopping camera');
+    const stream = videoRef.current?.srcObject;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  };
 
-The syntax error in the `.modal-content` class has been fixed by correcting the `box-shadow` property to `0px 4px 10px rgba(0, 0, 0, 0.5)`. The `background-image` path for `.circular-background` remains `url('./assets/tableau.jpg')` to match `frontend/src/assets/tableau.jpg`. All other styles are preserved to ensure the card is encapsulated within the circular background.
+  const capturePhoto = () => {
+    console.log('📷 Capturing photo');
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) {
+      console.error('❌ Canvas or video not available');
+      setError('Capture failed: camera not ready.');
+      return;
+    }
 
-```css
-/* Reset and global styles */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  min-height: 100vh;
-  overflow-y: auto;
-  background-color: #231f20;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
+      setImage(file);
+      setPreview(URL.createObjectURL(blob));
+      stopCamera();
+    }, 'image/jpeg');
+  };
+
+  const handleFileUpload = (e) => {
+    console.log('🖼 Handling file upload');
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file (e.g., JPEG, PNG).');
+      console.warn('❌ Invalid file type:', file.type);
+      return;
+    }
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+    setShowUploadModal(false);
+  };
+
+  const openFilePicker = () => {
+    console.log('📂 Opening file picker');
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    } else {
+      console.error('❌ fileInputRef.current is null');
+      setError('File picker failed to open.');
+    }
+  };
+
+  const handleSubmit = async () => {
+    console.log('🚀 Submitting image');
+    if (!image) return;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    const formData = new FormData();
+    formData.append('file', image);
+
+    try {
+      const res = await axios.post('https://seefood-66db0271b856.herokuapp.com/upload', formData);
+      setResult(res.data);
+      console.log('✅ Upload successful:', res.data);
+    } catch (err) {
+      console.error('❌ Upload errorApp.js error:', err.response?.data, err.message);
+      setError(err.response?.data?.error || 'Upload failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCorrectionSubmit = async () => {
+    console.log('📝 Submitting correction');
+    if (!correctLabel || !image) return;
+
+    const formData = new FormData();
+    formData.append('file', image);
+    formData.append('correct_label', correctLabel);
+
+    try {
+      await axios.post('https://seefood-66db0271b856.herokuapp.com/update-label', formData);
+      alert('Correction submitted!');
+      setShowCorrectionModal(false);
+      setCorrectLabel('');
+      console.log('✅ Correction submitted');
+    } catch (err) {
+      console.error('❌ Correction error:', err.response?.data, err.message);
+      alert('Correction failed: ' + (err.response?.data?.error || 'Unknown error'));
+    }
+  };
+
+  const resetAll = () => {
+    console.log('🔄 Resetting all');
+    setImage(null);
+    setPreview(null);
+    setResult(null);
+    setError(null);
+    setCorrectLabel('');
+    setShowCorrectionModal(false);
+    setShowUploadModal(false);
+    stopCamera();
+  };
+
+  return (
+    <div className="app-container">
+      <div className="container">
+        <div className="circular-background">
+          <div className="card">
+            <img src={Logo} alt="Logo" className="logo" />
+            <h1>SeeFood Image Recognition</h1>
+            <p>Upload an image or take a photo to recognize the food.</p>
+
+            {error && <div className="error">{error}</div>}
+
+            <div className="camera-container" style={{ display: isCameraActive ? 'block' : 'none' }}>
+              <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
+              <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
+              <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
+            </div>
+
+            {!isCameraActive && (
+              <div className="file-input-container">
+                <button onClick={() => setShowUploadModal(true)} disabled={loading}>
+                  📷 Upload Image
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={loading}
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            )}
+
+            {preview && <img src={preview} alt="Preview" className="image-preview" />}
+            <button onClick={handleSubmit} disabled={loading || !image}>
+              {loading ? '⏳ Processing...' : '✅ Submit Image'}
+            </button>
+            <button onClick={resetAll} disabled={loading}>🔄 Reset</button>
+
+            {result && (
+              <div className="result-container">
+                <h2>Prediction Result:</h2>
+                <p>
+                  <strong>Class:</strong> {result.predicted_class}
+                </p>
+                <p>
+                  <strong>Confidence:</strong> {result.confidence}
+                </p>
+                <button
+                  className="correction-button"
+                  onClick={() => setShowCorrectionModal(true)}
+                >
+                  🛠 Wrong Prediction?
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {showUploadModal && (
+          <div className="modal">
+            <div className="modal-content">
+              <h3>Choose Image Source</h3>
+              <p>Select how you'd like to upload your image:</p>
+              <div className="modal-buttons">
+                <button onClick={startCamera}>📸 Take Photo</button>
+                <button onClick={openFilePicker}>🖼 Choose from Gallery</button>
+                <button onClick={() => setShowUploadModal(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showCorrectionModal && (
+          <div className="modal">
+            <div className="modal-content">
+              <h3>Submit Correction</h3>
+              <input
+                type="text"
+                value={correctLabel}
+                onChange={(e) => setCorrectLabel(e.target.value)}
+                placeholder="Correct food label"
+                className="correction-input"
+              />
+              <div className="modal-buttons">
+                <button onClick={handleCorrectionSubmit} disabled={!correctLabel}>
+                  Submit
+                </button>
+                <button onClick={() => setShowCorrectionModal(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+      </div>
+    </div>
+  );
 }
 
-body,
-html {
-  animation: fadeIn 1.5s ease-in;
-  scroll-behavior: smooth;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity28: opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Remove scale-wrapper to avoid scaling issues */
-.scale-wrapper {
-  width: 100%;
-  max-width: 1200px; /* Reduced max-width for better mobile fit */
-}
-
-/* Main app container */
-.app-container {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #231f20;
-  flex-direction: column;
-  padding: 10px; /* Reduced padding for mobile */
-}
-
-/* Circular background image */
-.circular-background {
-  width: 500px; /* Fixed size for the circle */
-  height: 500px; /* Same as width for a perfect circle */
-  max-width: 90vw; /* Ensure it fits smaller screens */
-  max-height: 90vw; /* Maintain aspect ratio */
-  border-radius: 50%; /* Circular shape */
-  background-image: url('./assets/tableau.jpg'); /* Path for src/assets */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.8; /* Keep for contrast */
-  display: flex; /* Center the card inside */
-  justify-content: center;
-  align-items: center;
-  position: relative; /* Relative to avoid overlap issues */
-  z-index: 0; /* Behind the card */
-}
-
-/* Container for content */
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 600px; /* Limit width */
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-  padding: 20px 10px;
-}
-
-/* Rectangular card */
-.card {
-  background: linear-gradient(135deg, #231f20, #333333);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  max-width: 80%; /* Fit within the circular background */
-  width: 400px; /* Fixed width for consistency */
-  text-align: center;
-  color: white;
-  position: relative;
-  z-index: 1; /* Ensure card is above background */
-}
-
-/* Error messages */
-.error {
-  color: red;
-  background-color: #ffebee;
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-}
-
-/* Camera container */
-.camera-container {
-  margin-bottom: 20px;
-}
-
-.video-preview {
-  width: 100%;
-  max-width: 335px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-}
-
-/* File input container */
-.file-input-container {
-  margin-bottom: 20px;
-}
-
-/* Image preview */
-.image-preview {
-  max-width: 100%;
-  max-height: 300px;
-  object-fit: contain;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-/* Neon mint green reactive buttons */
-button {
-  margin: 8px;
-  padding: 12px 20px;
-  background-color: #98ff98;
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  position: relative;
-  z-index: 1;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 8px #98ff98, 0 0 20px #98ff98 inset;
-  animation: neonPulse 2s infinite alternate;
-}
-
-button::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: linear-gradient(135deg, #b0ffc2, #82ffab);
-  border-radius: 10px;
-  z-index: -1;
-  filter: blur(8px);
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-}
-
-button:hover::before {
-  opacity: 1;
-}
-
-button:hover {
-  background: linear-gradient(135deg, #b0ffc2, #82ffab);
-  color: #000;
-  box-shadow: 0 0 15px #98ff98, 0 0 40px #98ff98 inset;
-  transform: scale(1.05);
-}
-
-@keyframes neonPulse {
-  0% {
-    box-shadow: 0 0 10px #98ff98, 0 0 20px #98ff98 inset;
-  }
-  100% {
-    box-shadow: 0 0 25px #98ff98, 0 0 50px #98ff98 inset;
-  }
-}
-
-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  animation: none;
-  box-shadow: none;
-}
-
-/* Prediction result container */
-.result-container {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f5f5f5;
-  border-radius: 5px;
-  color: #000;
-}
-
-/* Wrong Prediction button */
-.correction-button {
-  background-color: #ff6b6b;
-  box-shadow: 0 0 8px #ff6b6b, 0 0 20px #ff6b6b inset;
-  animation: neonPulseRed 2s infinite alternate;
-}
-
-.correction-button::before {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-}
-
-.correction-button:hover {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-  box-shadow: 0 0 15px #ff6b6b, 0 0 40px #ff6b6b inset;
-}
-
-@keyframes neonPulseRed {
-  0% {
-    box-shadow: 0 0 10px #ff6b6b, 0 0 20px #ff6b6b inset;
-  }
-  100% {
-    box-shadow: 0 0 25px #ff6b6b, 0 0 50px #ff6b6b inset;
-  }
-}
-
-/* Modal styles for correction and upload choice */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: linear-gradient(135deg, #231f20, #333333);
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  color: white;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Fixed syntax */
-}
-
-.modal-content h3 {
-  margin: 0 0 15px;
-  font-size: 24px;
-}
-
-.modal-content p {
-  margin: 0 0 15px;
-  font-size: 16px;
-}
-
-.correction-input {
-  width: 80%;
-  padding: 10px;
-  margin: 10px auto;
-  border: 1px solid #98ff98;
-  border-radius: 5px;
-  background-color: #333333;
-  color: white;
-  font-size: 16px;
-}
-
-.correction-input::placeholder {
-  color: #aaaaaa;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
-.modal-buttons button {
-  padding: 10px 20px;
-  font-size: 14px;
-}
-
-.modal-buttons button:first-child {
-  background-color: #98ff98;
-}
-
-.modal-buttons button:nth-child(2) {
-  background-color: #4db6ff;
-  box-shadow: 0 0 8px #4db6ff, 0 0 20px #4db6ff inset;
-  animation: neonPulseBlue 2s infinite alternate;
-}
-
-.modal-buttons button:nth-child(2)::before {
-  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
-}
-
-.modal-buttons button:nth-child(2):hover {
-  background: linear-gradient(135deg, #6ec1ff, #2a9bff);
-  box-shadow: 0 0 15px #4db6ff, 0 0 40px #4db6ff inset;
-}
-
-@keyframes neonPulseBlue {
-  0% {
-    box-shadow: 0 0 10px #4db6ff, 0 0 20px #4db6ff inset;
-  }
-  100% {
-    box-shadow: 0 0 25px #4db6ff, 0 0 50px #4db6ff inset;
-  }
-}
-
-.modal-buttons button:last-child {
-  background-color: #ff6b6b;
-  box-shadow: 0 0 8px #ff6b6b, 0 0 20px #ff6b6b inset;
-  animation: neonPulseRed 2s infinite alternate;
-}
-
-.modal-buttons button:last-child::before {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-}
-
-.modal-buttons button:last-child:hover {
-  background: linear-gradient(135deg, #ff8787, #ff4d4d);
-  box-shadow: 0 0 15px #ff6b6b, 0 0 40px #ff6b6b inset;
-}
-
-/* Responsive design */
-@media screen and (max-width: 768px) {
-  .circular-background {
-    width: 80vw; /* Smaller for mobile */
-    height: 80vw;
-    max-width: 400px;
-    max-height: 400px;
-  }
-
-  .container {
-    padding: 10px;
-    max-width: 95%; /* Fit mobile viewport */
-  }
-
-  .card {
-    max-width: 85%; /* Slightly smaller to fit within circle */
-    width: 100%; /* Full width within max-width */
-  }
-
-  .image-preview {
-    max-height: 250px;
-  }
-
-  .modal-content {
-    width: 95%;
-    padding: 15px;
-  }
-
-  .modal-content h3 {
-    font-size: 20px;
-  }
-
-  .modal-content p {
-    font-size: 14px;
-  }
-
-  .correction-input {
-    width: 90%;
-  }
-
-  .modal-buttons {
-    flex-direction: column;
-  }
-
-  .modal-buttons button {
-    margin: 5px 0;
-    width: 100%;
-  }
-}
-
-/* Logo */
-.logo {
-  width: 100px;
-  margin-bottom: 15px;
-  filter: drop-shadow(0 0 5px #98ff98);
-}
+export default App;
