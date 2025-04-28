@@ -236,13 +236,13 @@ function App() {
 
           {error && <div className="error">{error}</div>}
 
-          {isCameraActive ? (
-            <div className="camera-container">
-              <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
-              <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
-              <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
-            </div>
-          ) : (
+          <div className="camera-container" style={{ display: isCameraActive ? 'block' : 'none' }}>
+            <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
+            <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
+            <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
+          </div>
+
+          {!isCameraActive && (
             <div className="file-input-container">
               <button onClick={() => setShowUploadModal(true)} disabled={loading}>
                 📷 Upload Image
