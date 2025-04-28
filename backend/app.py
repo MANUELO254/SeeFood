@@ -24,7 +24,7 @@ else:
 
 # === Flask App Setup ===
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://see-food-umber.vercel.app"}})
+CORS(app, resources={r"/*": {"origins": ["https://see-food-umber.vercel.app"]}}, supports_credentials=True)
 
 # === Constants ===
 MODEL_DIR = Path("/app/backend/models")
