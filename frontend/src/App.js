@@ -12,29 +12,34 @@ function App() {
   const [correctLabel, setCorrectLabel] = useState('');
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraRequested, setCameraRequested] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [cameraRequested, setCameraRequested] = useState(false);
+  useEffect(() => {
+    // Mobile viewport height fix
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', ${vh}px);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    return () => window.removeEventListener('resize', setVh);
+  }, []);
 
   useEffect(() => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('Camera is not supported in this browser.');
-      console.warn('❌ navigator.mediaDevices.getUserMedia not available');
     } else if (!window.isSecureContext) {
       setError('Camera access requires a secure context (HTTPS).');
-      console.warn('❌ Not in secure context');
-    } else {
-      console.log('✅ Camera and secure context supported');
     }
   }, []);
 
   useEffect(() => {
     if (cameraRequested && videoRef.current) {
-      console.log('🎥 Initiating camera access...');
       const constraints = {
         video: {
           facingMode: 'environment',
@@ -43,69 +48,44 @@ function App() {
         },
       };
 
-      navigator.mediaDevices
-        .getUserMedia(constraints)
+      navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
-          console.log('✅ Camera stream received:', stream);
           const video = videoRef.current;
           if (video) {
             video.srcObject = stream;
             video.onloadedmetadata = () => {
-              console.log('✅ Video metadata loaded, playing...');
-              video.play().catch((err) => {
-                console.error('❌ Video play failed:', err);
-                setError('Failed to play camera stream: ' + err.message);
-              });
+              video.play();
               setIsCameraActive(true);
               setError(null);
             };
-          } else {
-            console.error('❌ videoRef.current is null');
-            setError('Camera initialization failed: video element not found.');
           }
         })
         .catch((err) => {
-          console.error('❌ Camera access failed:', err);
           setError('Camera access failed: ' + err.message);
           setIsCameraActive(false);
         })
         .finally(() => {
-          console.log('🎥 Camera request completed');
           setCameraRequested(false);
         });
 
       const timeout = setTimeout(() => {
         if (!isCameraActive) {
-          console.warn('❌ Camera failed to start within 5 seconds');
           setError('Camera failed to start. Please try again or use gallery.');
           setCameraRequested(false);
-          setIsCameraActive(false);
         }
       }, 5000);
 
       return () => clearTimeout(timeout);
-    } else if (cameraRequested) {
-      console.warn('❌ videoRef.current not ready when camera requested');
-      setError('Camera initialization failed: video element not ready.');
-      setCameraRequested(false);
     }
   }, [cameraRequested, isCameraActive]);
 
   const startCamera = () => {
-    console.log('📸 startCamera called');
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError('Camera is not supported in this browser.');
-      console.warn('❌ Camera not supported');
-      return;
-    }
-    if (!window.isSecureContext) {
-      setError('Camera access requires a secure context (HTTPS).');
-      console.warn('❌ Not in secure context');
+    if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
+      setError('Camera is not supported or context not secure.');
       return;
     }
     if (!videoRef.current) {
-      setError('Camera initialization failed: video element not found.');
-      console.error('❌ videoRef.current is null');
+      setError('Camera initialization failed.');
       return;
     }
     setCameraRequested(true);
@@ -113,31 +93,27 @@ function App() {
   };
 
   const stopCamera = () => {
-    console.log('🛑 Stopping camera');
     const stream = videoRef.current?.srcObject;
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
+      stream.getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
     }
     setIsCameraActive(false);
   };
 
   const capturePhoto = () => {
-    console.log('📷 Capturing photo');
     const canvas = canvasRef.current;
     const video = videoRef.current;
     if (!canvas || !video) {
-      console.error('❌ Canvas or video not available');
       setError('Capture failed: camera not ready.');
       return;
     }
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    canvas.toBlob((blob) => {
+    canvas.toBlob(blob => {
       const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
       setImage(file);
       setPreview(URL.createObjectURL(blob));
@@ -146,12 +122,10 @@ function App() {
   };
 
   const handleFileUpload = (e) => {
-    console.log('🖼️ Handling file upload');
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setError('Please upload a valid image file (e.g., JPEG, PNG).');
-      console.warn('❌ Invalid file type:', file.type);
+      setError('Please upload a valid image file.');
       return;
     }
     setImage(file);
@@ -160,17 +134,10 @@ function App() {
   };
 
   const openFilePicker = () => {
-    console.log('📂 Opening file picker');
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    } else {
-      console.error('❌ fileInputRef.current is null');
-      setError('File picker failed to open.');
-    }
+    fileInputRef.current?.click();
   };
 
   const handleSubmit = async () => {
-    console.log('🚀 Submitting image');
     if (!image) return;
     setLoading(true);
     setError(null);
@@ -182,9 +149,7 @@ function App() {
     try {
       const res = await axios.post('https://seefood-66db0271b856.herokuapp.com/upload', formData);
       setResult(res.data);
-      console.log('✅ Upload successful:', res.data);
     } catch (err) {
-      console.error('❌ Upload error:', err.response?.data, err.message);
       setError(err.response?.data?.error || 'Upload failed.');
     } finally {
       setLoading(false);
@@ -192,7 +157,6 @@ function App() {
   };
 
   const handleCorrectionSubmit = async () => {
-    console.log('📝 Submitting correction');
     if (!correctLabel || !image) return;
 
     const formData = new FormData();
@@ -204,15 +168,12 @@ function App() {
       alert('Correction submitted!');
       setShowCorrectionModal(false);
       setCorrectLabel('');
-      console.log('✅ Correction submitted');
     } catch (err) {
-      console.error('❌ Correction error:', err.response?.data, err.message);
       alert('Correction failed: ' + (err.response?.data?.error || 'Unknown error'));
     }
   };
 
   const resetAll = () => {
-    console.log('🔄 Resetting all');
     setImage(null);
     setPreview(null);
     setResult(null);
@@ -268,7 +229,7 @@ function App() {
               <p><strong>Class:</strong> {result.predicted_class}</p>
               <p><strong>Confidence:</strong> {result.confidence}</p>
               <button className="correction-button" onClick={() => setShowCorrectionModal(true)}>
-                🛠️ Wrong Prediction?
+                🛠 Wrong Prediction?
               </button>
             </div>
           )}
@@ -281,7 +242,7 @@ function App() {
               <p>Select how you'd like to upload your image:</p>
               <div className="modal-buttons">
                 <button onClick={startCamera}>📸 Take Photo</button>
-                <button onClick={openFilePicker}>🖼️ Choose from Gallery</button>
+                <button onClick={openFilePicker}>🖼 Choose from Gallery</button>
                 <button onClick={() => setShowUploadModal(false)}>Cancel</button>
               </div>
             </div>
