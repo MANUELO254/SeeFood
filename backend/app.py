@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify 
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import tflite_runtime.interpreter as tflite
 
@@ -12,7 +12,7 @@ import pandas as pd
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from pathlib import Path
-from huggingface_hub import hf_hub_download
+import requests
 from functools import lru_cache
 
 # === Load environment variables ===
@@ -31,24 +31,28 @@ MODEL_DIR = Path("/app/backend/models")
 MODEL_PATH = MODEL_DIR / "best_model.tflite"
 LABELS_PATH = Path("restructured_labels.csv")
 
-# === Download Model from Hugging Face ===
+HUGGINGFACE_MODEL_URL = "https://huggingface.co/Manuelo254/SeeFoodKeras/resolve/main/best_model.tflite?download=true"
+
+# === Download Model from Hugging Face URL ===
 def download_model():
     print(f"Model path: {MODEL_PATH.resolve()}")
     if not MODEL_PATH.exists():
-        print("📦 Downloading model from Hugging Face...")
+        print("📦 Downloading model from Hugging Face URL...")
         os.makedirs(MODEL_DIR, exist_ok=True)
         try:
-            hf_hub_download(
-                repo_id="Manuelo254/SeeFoodKeras",
-                filename="best_model.tflite",
-                local_dir=MODEL_DIR,
-                local_dir_use_symlinks=False
-            )
-            print("✅ Model download complete.")
-            file_size = MODEL_PATH.stat().st_size
-            print(f"Downloaded file size: {file_size} bytes")
-            if file_size < 1000:
-                raise ValueError("Downloaded model file is too small, likely corrupted.")
+            response = requests.get(HUGGINGFACE_MODEL_URL, stream=True)
+            if response.status_code == 200:
+                with open(MODEL_PATH, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                print("✅ Model download complete.")
+                file_size = MODEL_PATH.stat().st_size
+                print(f"Downloaded file size: {file_size} bytes")
+                if file_size < 1000:
+                    raise ValueError("Downloaded model file is too small, likely corrupted.")
+            else:
+                raise Exception(f"Failed to download model. Status code: {response.status_code}")
         except Exception as e:
             print(f"❌ Failed to download model: {str(e)}")
             raise
