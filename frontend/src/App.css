@@ -47,8 +47,8 @@ html {
 
 /* Circular background image */
 .circular-background {
-  width: 450px; /* Slightly smaller for better fit */
-  height: 450px; /* Same as width for a perfect circle */
+  width: 650px; /* Increased size for better desktop appearance */
+  height: 650px; /* Same as width for a perfect circle */
   max-width: 90vw; /* Ensure it fits smaller screens */
   max-height: 90vw; /* Maintain aspect ratio */
   border-radius: 50%; /* Circular shape */
@@ -60,7 +60,7 @@ html {
   display: flex; /* Center the card inside */
   justify-content: center;
   align-items: center;
-  position: relative;
+  position: relative; /* Relative to avoid overlap issues */
   z-index: 0; /* Behind the card */
 }
 
@@ -71,6 +71,7 @@ html {
   align-items: center;
   justify-content: center;
   width: 100%;
+  max-width: 600px; /* Limit width */
   min-height: 100vh;
   position: relative;
   z-index: 1;
@@ -80,15 +81,16 @@ html {
 /* Rectangular card */
 .card {
   background: linear-gradient(135deg, #231f20, #333333);
-  padding: 15px; /* Slightly reduced padding */
+  padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  max-width: 80%; /* Fit within the circular background */
-  width: 100%; /* Flexible width */
+  width: 90%; /* Fit within the circular background */
+  max-width: 450px; /* Slightly larger for better content fit */
   text-align: center;
   color: white;
   position: relative;
   z-index: 1; /* Ensure card is above background */
+  box-sizing: border-box; /* Ensure padding doesn't affect width */
 }
 
 /* Error messages */
@@ -242,7 +244,7 @@ button:disabled {
   width: 90%;
   text-align: center;
   color: white;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); /* Fixed syntax */
 }
 
 .modal-content h3 {
@@ -327,25 +329,24 @@ button:disabled {
 /* Responsive design */
 @media screen and (max-width: 768px) {
   .circular-background {
-    width: 80vw; /* Smaller for mobile */
-    height: 80vw;
-    max-width: 350px; /* Adjusted for mobile */
-    max-height: 350px;
+    width: 90vw; /* Adjust to fit mobile screens */
+    height: 90vw;
+    max-width: 450px; /* Prevent overly large circles */
+    max-height: 450px;
   }
 
   .container {
     padding: 10px;
-    width: 100%; /* Full width for mobile */
+    max-width: 95%; /* Fit mobile viewport */
   }
 
   .card {
-    max-width: 80%; /* Fit within circle */
-    width: 100%; /* Flexible width */
-    padding: 10px; /* Reduced padding for mobile */
+    width: 85%; /* Fit within the circular background */
+    max-width: 350px; /* Smaller for mobile */
   }
 
   .image-preview {
-    max-height: 200px; /* Smaller for mobile */
+    max-height: 250px;
   }
 
   .modal-content {
