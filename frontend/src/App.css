@@ -331,8 +331,8 @@ button:disabled {
   .circular-background {
     width: 90vw; /* Adjust to fit mobile screens */
     height: 90vw;
-    max-width: 450px; /* Prevent overly large circles */
-    max-height: 450px;
+    max-width: 400px; /* Slightly smaller to prevent overflow */
+    max-height: 400px;
   }
 
   .container {
@@ -341,12 +341,14 @@ button:disabled {
   }
 
   .card {
-    width: 85%; /* Fit within the circular background */
-    max-width: 350px; /* Smaller for mobile */
+    width: 80%; /* Reduced to fit better within the circular background */
+    max-width: 320px; /* Smaller to prevent width overflow */
+    max-height: 80vh; /* Limit height to fit within viewport */
+    overflow-y: auto; /* Allow scrolling if content overflows */
   }
 
   .image-preview {
-    max-height: 250px;
+    max-height: 200px; /* Reduced to fit within smaller card */
   }
 
   .modal-content {
