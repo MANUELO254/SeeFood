@@ -1,8 +1,7 @@
-// App.js
-
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import TableFoodImage from './assets/tableau.jpg';
 import Logo from './assets/logo.png';
 
 function App() {
@@ -23,6 +22,7 @@ function App() {
   const [cameraRequested, setCameraRequested] = useState(false);
 
   useEffect(() => {
+    // Check for camera support and secure context
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('Camera is not supported in this browser.');
       console.warn('❌ navigator.mediaDevices.getUserMedia not available');
@@ -148,7 +148,7 @@ function App() {
   };
 
   const handleFileUpload = (e) => {
-    console.log('🖼 Handling file upload');
+    console.log('🖼️ Handling file upload');
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -186,7 +186,7 @@ function App() {
       setResult(res.data);
       console.log('✅ Upload successful:', res.data);
     } catch (err) {
-      console.error('❌ Upload errorApp.js error:', err.response?.data, err.message);
+      console.error('❌ Upload error:', err.response?.data, err.message);
       setError(err.response?.data?.error || 'Upload failed.');
     } finally {
       setLoading(false);
@@ -227,61 +227,53 @@ function App() {
 
   return (
     <div className="app-container">
+      <div className="circular-background" style={{ backgroundImage: `url(${TableFoodImage})` }}></div>
       <div className="container">
-        <div className="circular-background">
-          <div className="card">
-            <img src={Logo} alt="Logo" className="logo" />
-            <h1>SeeFood Image Recognition</h1>
-            <p>Upload an image or take a photo to recognize the food.</p>
+        <div className="card">
+          <img src={Logo} alt="Logo" className="logo" />
+          <h1>SeeFood Image Recognition</h1>
+          <p>Upload an image or take a photo to recognize the food.</p>
 
-            {error && <div className="error">{error}</div>}
+          {error && <div className="error">{error}</div>}
 
-            <div className="camera-container" style={{ display: isCameraActive ? 'block' : 'none' }}>
-              <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
-              <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
-              <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
-            </div>
-
-            {!isCameraActive && (
-              <div className="file-input-container">
-                <button onClick={() => setShowUploadModal(true)} disabled={loading}>
-                  📷 Upload Image
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  disabled={loading}
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                />
-              </div>
-            )}
-
-            {preview && <img src={preview} alt="Preview" className="image-preview" />}
-            <button onClick={handleSubmit} disabled={loading || !image}>
-              {loading ? '⏳ Processing...' : '✅ Submit Image'}
-            </button>
-            <button onClick={resetAll} disabled={loading}>🔄 Reset</button>
-
-            {result && (
-              <div className="result-container">
-                <h2>Prediction Result:</h2>
-                <p>
-                  <strong>Class:</strong> {result.predicted_class}
-                </p>
-                <p>
-                  <strong>Confidence:</strong> {result.confidence}
-                </p>
-                <button
-                  className="correction-button"
-                  onClick={() => setShowCorrectionModal(true)}
-                >
-                  🛠 Wrong Prediction?
-                </button>
-              </div>
-            )}
+          <div className="camera-container" style={{ display: isCameraActive ? 'block' : 'none' }}>
+            <video ref={videoRef} autoPlay muted playsInline className="video-preview" />
+            <button onClick={capturePhoto} disabled={loading}>📸 Capture</button>
+            <button onClick={stopCamera} disabled={loading}>❌ Close Camera</button>
           </div>
+
+          {!isCameraActive && (
+            <div className="file-input-container">
+              <button onClick={() => setShowUploadModal(true)} disabled={loading}>
+                📷 Upload Image
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={loading}
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+              />
+            </div>
+          )}
+
+          {preview && <img src={preview} alt="Preview" className="image-preview" />}
+          <button onClick={handleSubmit} disabled={loading || !image}>
+            {loading ? '⏳ Processing...' : '✅ Submit Image'}
+          </button>
+          <button onClick={resetAll} disabled={loading}>🔄 Reset</button>
+
+          {result && (
+            <div className="result-container">
+              <h2>Prediction Result:</h2>
+              <p><strong>Class:</strong> {result.predicted_class}</p>
+              <p><strong>Confidence:</strong> {result.confidence}</p>
+              <button className="correction-button" onClick={() => setShowCorrectionModal(true)}>
+                🛠️ Wrong Prediction?
+              </button>
+            </div>
+          )}
         </div>
 
         {showUploadModal && (
@@ -291,7 +283,7 @@ function App() {
               <p>Select how you'd like to upload your image:</p>
               <div className="modal-buttons">
                 <button onClick={startCamera}>📸 Take Photo</button>
-                <button onClick={openFilePicker}>🖼 Choose from Gallery</button>
+                <button onClick={openFilePicker}>🖼️ Choose from Gallery</button>
                 <button onClick={() => setShowUploadModal(false)}>Cancel</button>
               </div>
             </div>
@@ -310,9 +302,7 @@ function App() {
                 className="correction-input"
               />
               <div className="modal-buttons">
-                <button onClick={handleCorrectionSubmit} disabled={!correctLabel}>
-                  Submit
-                </button>
+                <button onClick={handleCorrectionSubmit} disabled={!correctLabel}>Submit</button>
                 <button onClick={() => setShowCorrectionModal(false)}>Cancel</button>
               </div>
             </div>
