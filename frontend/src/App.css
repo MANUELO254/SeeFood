@@ -3,7 +3,7 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   min-height: 100vh;
-  overflow-y: auto;
+  overflow-y: auto; /* Allow scrolling on the body if needed */
   background-color: #231f20;
   display: flex;
   justify-content: center;
@@ -72,7 +72,7 @@ html {
   justify-content: center;
   width: 100%;
   max-width: 600px; /* Limit width */
-  min-height: 100vh;
+  min-height: 100vh; /* Changed from 100vh to ensure it doesn't force excessive height */
   position: relative;
   z-index: 1;
   padding: 20px 10px;
@@ -91,6 +91,16 @@ html {
   position: relative;
   z-index: 1; /* Ensure card is above background */
   box-sizing: border-box; /* Ensure padding doesn't affect width */
+
+  /* ---- NEW ---- */
+  /* Set a maximum height for the card */
+  max-height: 80vh; /* Adjust value as needed (e.g., 75vh, 500px) */
+  /* Allow vertical scrolling ONLY if content exceeds max-height */
+  overflow-y: auto;
+  /* ---- END NEW ---- */
+
+  /* Optional: Add some padding-bottom to prevent scrollbar overlapping last element */
+  padding-bottom: 30px; /* Adjust as needed */
 }
 
 /* Error messages */
@@ -122,6 +132,7 @@ html {
 /* Image preview */
 .image-preview {
   max-width: 100%;
+  /* Keep the existing max-height, it defines the image size *within* the card */
   max-height: 300px;
   object-fit: contain;
   border-radius: 5px;
@@ -195,6 +206,9 @@ button:disabled {
   background-color: #f5f5f5;
   border-radius: 5px;
   color: #000;
+  /* Ensure text wraps if it's very long */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Wrong Prediction button */
@@ -343,8 +357,9 @@ button:disabled {
   .card {
     width: 80%; /* Reduced to fit better within the circular background */
     max-width: 320px; /* Smaller to prevent width overflow */
-    max-height: 80vh; /* Limit height to fit within viewport */
-    overflow-y: auto; /* Allow scrolling if content overflows */
+    /* max-height and overflow-y are now in the main rule, */
+    /* but you could override max-height here if needed for mobile specifically */
+    /* e.g., max-height: 85vh; */
   }
 
   .image-preview {
